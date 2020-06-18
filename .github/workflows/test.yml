@@ -2,15 +2,21 @@ name: test
 
 on: 
   push:
+    branches: 
+      - '**'
+    tags-ignore:
+      - '*.*'
     paths:
       - 'src/**'
       - '.github/workflows/test.yml'
-    tags-ignore: '*'
   pull_request:
+    branches: 
+      - '**'
+    tags-ignore:
+      - '*.*'
     paths:
       - 'src/**'
       - '.github/workflows/test.yml'
-    tags-ignore: '*'
 
 jobs:
   windows:
