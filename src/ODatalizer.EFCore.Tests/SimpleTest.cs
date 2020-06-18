@@ -34,11 +34,29 @@ namespace ODatalizer.EFCore.Tests
         }
 
         [Fact]
-        public async Task GetMetadata()
+        public async Task Get()
         {
-            var response = await _client.GetAsync("/sample/$metadata");
+            var response = await _client.GetAsync("/sample/Products?$count=true");
             Assert.True(response.IsSuccessStatusCode);
-            Assert.Equal("application/xml", response.Content.Headers.ContentType.MediaType);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            var total = (int)result.SelectToken("$['@odata.count']");
+            var products = result.SelectTokens("$.value[:]");
+
+            Assert.Equal(5, total);
+            Assert.Equal(5, products.Count());
+        }
+
+        [Fact]
+        public async Task Find()
+        {
+            var response = await _client.GetAsync("/sample/Products(1L)");
+            Assert.True(response.IsSuccessStatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Sample 1", (string)result.SelectToken("$.Name"));
         }
     }
 }
