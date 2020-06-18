@@ -1,7 +1,9 @@
 name: release
+
 on:
   release:
     types: [published]
+
 jobs:
   windows:
     runs-on: windows-latest
@@ -14,7 +16,7 @@ jobs:
     - name: Run all tests
       working-directory: ./src/
       run: dotnet test ODatalizer.EFCore.sln
-    -name: Replace version
+    - name: Replace version
       working-directory: ./src/ODatalizer.EFCore
       shell: bash
       run: sed -i -e "s|<Version>1.0.0</Version>|<Version>${{ github.event.release.tag_name }}</Version>|g" ./ODatalizer.EFCore.csproj
