@@ -48,7 +48,7 @@ namespace <#= Namespace #>
         }
 
         [EnableQuery]
-        [ODataRoute("<#= entitySetName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
         public IActionResult Get(<#= keysTypeNameComma #>)
         {
             return Ok(_db.<#= entitySetName #>.Find(<#= keysNameComma #>));
