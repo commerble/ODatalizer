@@ -29,17 +29,17 @@ public void ConfigureServices(IServiceCollection services)
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
 {
     // create ODatalizer ep metadata
-    var sample = new ODatalizerEndpoint(sample, "Sample", "sample");
+    var ep = new ODatalizerEndpoint(sample, "Sample", "sample");
 
     // load ODatalizer controllers
-    app.UseODatalizer(sample);
+    app.UseODatalizer(ep);
 
     ...
 
     app.UseEndpoints(endpoints =>
     {
         // map ODatalizer routes
-        endpoints.MapODatalizer(sample);
+        endpoints.MapODatalizer(ep);
         ...
     });
 }
