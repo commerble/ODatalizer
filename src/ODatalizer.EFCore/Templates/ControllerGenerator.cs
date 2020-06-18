@@ -87,11 +87,12 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
             this.Write(")]\n        public IActionResult Get(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(")\n        {\n            return Ok(_db.");
+            this.Write(")\n        {\n            var entity = _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Find(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write("));\n        }\n\n        [ODataRoute(\"");
+            this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
+                    "   return Ok(entity);\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("\", RouteName = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));

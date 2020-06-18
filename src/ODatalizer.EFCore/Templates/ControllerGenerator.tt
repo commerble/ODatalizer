@@ -51,7 +51,12 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
         public IActionResult Get(<#= keysTypeNameComma #>)
         {
-            return Ok(_db.<#= entitySetName #>.Find(<#= keysNameComma #>));
+            var entity = _db.<#= entitySetName #>.Find(<#= keysNameComma #>);
+
+            if (entity == null)
+                return NotFound();
+
+            return Ok(entity);
         }
 
         [ODataRoute("<#= entitySetName #>", RouteName = <#= RouteNameValue #>)]
