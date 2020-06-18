@@ -1,4 +1,4 @@
-![Unit Tests](https://github.com/iwate/ODatalizer/workflows/test/badge.svg)
+![Unit Tests](https://github.com/commerble/ODatalizer/workflows/test/badge.svg)
 
 The simplest implementation of OData server.
 
