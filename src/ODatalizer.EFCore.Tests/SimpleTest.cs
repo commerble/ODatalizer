@@ -1,10 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OData.Edm;
 using Newtonsoft.Json.Linq;
-using ODatalizer.EFCore.Builders;
 using ODatalizer.EFCore.Tests.Host;
 using Sample.EFCore;
-using Sample.EFCore.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
