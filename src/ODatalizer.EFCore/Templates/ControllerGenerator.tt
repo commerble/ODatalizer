@@ -145,6 +145,10 @@ namespace <#= Namespace #>
         foreach(var one in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() == false))
         {
             var navName = one.NavigationProperty.Name;
+            var navEntityType = one.NavigationProperty.ToEntityType();
+            var navEntityName = navEntityType.FullTypeName();
+            var navKeys = navEntityType.DeclaredKey;
+
     #>
         [EnableQuery]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
@@ -156,6 +160,98 @@ namespace <#= Namespace #>
                 return NotFound();
             
             return Ok(entity);
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        public async Task<IActionResult> Post<#= navName #>(<#= keysTypeNameComma #>, [FromBody]<#= navEntityName #> entity)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(entity);
+
+            //using var tran = _db.Database.BeginTransaction();
+
+            var principal = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).FirstOrDefault();
+
+            if (principal == null)
+                return NotFound();
+
+            if (principal.<#= navName #> != null)
+                return Conflict();
+
+            principal.<#= navName #> = entity;
+
+            await _db.SaveChangesAsync();
+
+            //tran.Commit();
+
+            return Created(entity);
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        public async Task<IActionResult> Put<#= navName #>(<#= keysTypeNameComma #>, [FromBody]<#= navEntityName #> entity)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(entity);
+
+            //using var tran = _db.Database.BeginTransaction();
+
+            var original = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).Select(o => o.<#= navName #>).FirstOrDefault();
+
+            if (original == null)
+                return NotFound();
+
+            if (<#= navKeys.Select(key => "original." + key.Name + " != entity." + key.Name).Join(" || ") #>)
+                return BadRequest();
+
+            _db.Entry(original).State = EntityState.Detached;
+
+            var entry = _db.Entry(entity);
+
+            entry.State = EntityState.Modified;
+
+            await _db.SaveChangesAsync();
+
+            //tran.Commit();
+
+            return NoContent();
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        public async Task<IActionResult> Patch<#= navName #>(<#= keysTypeNameComma #>, [FromBody]Delta<<#= navEntityName #>> delta)
+        {
+            //using var tran = _db.Database.BeginTransaction();
+
+            var original = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).Select(o => o.<#= navName #>).FirstOrDefault();
+
+            if (original == null)
+                return NotFound();
+
+            delta.Patch(original);
+
+            await _db.SaveChangesAsync();
+
+            //tran.Commit();
+
+            return NoContent();
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        public async Task<IActionResult> Delete<#= navName #>(<#= keysTypeNameComma #>)
+        {
+            //using var tran = _db.Database.BeginTransaction();
+
+            var principal = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).FirstOrDefault();
+
+            if (principal.<#= navName #> == null)
+                return NotFound();
+
+            principal.<#= navName #> = null;
+
+            await _db.SaveChangesAsync();
+
+            //tran.Commit();
+
+            return NoContent();
         }
     <# } #>
     }

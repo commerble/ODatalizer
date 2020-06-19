@@ -23,6 +23,7 @@ namespace ODatalizer.EFCore.Tests
     /// Patch ~/entitysets(key)/many(key)
     /// Delete ~/entitysets(key)/many(key)
     /// </summary>
+    [TestCaseOrderer("ODatalizer.EFCore.Tests.PriorityOrderer", "ODatalizer.EFCore.Tests")]
     public class NavigationTest : IClassFixture<ODatalizerWebApplicationFactory<Startup>>
     {
         private readonly HttpClient _client;
@@ -36,8 +37,8 @@ namespace ODatalizer.EFCore.Tests
             _edm = EdmBuilder.Build(scope.ServiceProvider.GetRequiredService<SampleDbContext>());
         }
 
-        [Fact(DisplayName = "~/entitysets(key)/one")]
-        public async Task GetOne()
+        [Fact(DisplayName = "GET ~/entitysets(key)/one (principal to optional)"), TestPriority(0)]
+        public async Task GetOne1()
         {
             var response = await _client.GetAsync("/sample/Products(1L)/SalesProduct");
 
@@ -46,6 +47,87 @@ namespace ODatalizer.EFCore.Tests
             var result = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             Assert.Equal("None", (string)result.SelectToken("$.TaxRoundMode"));
+        }
+
+        [Fact(DisplayName = "GET ~/entitysets(key)/one (optional to principal)"), TestPriority(0)]
+        public async Task GetOne2()
+        {
+            var response = await _client.GetAsync("/sample/SalesProducts(1L)/Product");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Sample 1", (string)result.SelectToken("$.Name"));
+        }
+
+        [Fact(DisplayName = "POST ~/entitysets(key)/one"), TestPriority(1)]
+        public async Task PostOne()
+        {
+            var response = await _client.PostAsync("/sample/Products(2L)/SalesProduct", Helpers.JSON(new
+            {
+                TaxRoundMode = "None",
+            }));
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(2L)/SalesProduct");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("None", (string)result.SelectToken("$.TaxRoundMode"));
+        }
+
+        [Fact(DisplayName = "PUT ~/entitysets(key)/one"), TestPriority(1)]
+        public async Task PutOne()
+        {
+            var response = await _client.PutAsync("/sample/Products(1L)/SalesProduct", Helpers.JSON(new {
+                ProductId = 1L,
+                TaxRoundMode = "Floor",
+            }));
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/SalesProduct");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Floor", (string)result.SelectToken("$.TaxRoundMode"));
+        }
+
+        [Fact(DisplayName = "PATCH ~/entitysets(key)/one"), TestPriority(1)]
+        public async Task PatchOne()
+        {
+            var response = await _client.PatchAsync("/sample/Products(1L)/SalesProduct", Helpers.JSON(new
+            {
+                TaxRoundMode = "Inclusive",
+            }));
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/SalesProduct");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Inclusive", (string)result.SelectToken("$.TaxRoundMode"));
+        }
+
+        [Fact(DisplayName = "DELETE ~/entitysets(key)/one"), TestPriority(2)]
+        public async Task DeleteOne()
+        {
+            var response = await _client.DeleteAsync("/sample/Products(1L)/SalesProduct");
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/SalesProduct");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }
