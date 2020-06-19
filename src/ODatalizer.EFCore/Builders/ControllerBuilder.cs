@@ -29,28 +29,7 @@ namespace ODatalizer.EFCore.Builders
         public Assembly Build<TDbContext>(string code, TDbContext db) where TDbContext : DbContext
         {
             var tree = CSharpSyntaxTree.ParseText(code);
-            var imports = new[] { 
-                "mscorlib", 
-                "netstandard", 
-                "System.Private.CoreLib", 
-                "System.Private.Uri", 
-                "System.Runtime", 
-                "System.Linq.Expressions", 
-                "System.Threading.Tasks", 
-                "System.Threading.Tasks.Extensions", 
-                "Microsoft.Bcl.AsyncInterfaces" 
-            };
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => imports.Contains(asm.GetName().Name)).Concat(new[] {
-                typeof(DbContext).Assembly,
-                typeof(Microsoft.AspNetCore.Mvc.IActionResult).Assembly,
-                typeof(Microsoft.AspNetCore.Mvc.OkResult).Assembly,
-                typeof(Microsoft.AspNet.OData.ODataController).Assembly,
-                typeof(ILogger).Assembly,
-                db.GetType().Assembly,
-                Assembly.GetEntryAssembly(),
-                Assembly.GetCallingAssembly(),
-                Assembly.GetExecutingAssembly(),
-            }).Distinct();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false).Distinct();
             var comp = CSharpCompilation.Create(
                 assemblyName: Path.GetRandomFileName(),
                 syntaxTrees: new[] { tree },
