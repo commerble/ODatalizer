@@ -17,6 +17,7 @@ namespace ODatalizer.EFCore.Tests
     /// Patch ~/entitysets(key)
     /// Delete ~/entitysets(key)
     /// </summary>
+    [TestCaseOrderer("ODatalizer.EFCore.Tests.PriorityOrderer", "ODatalizer.EFCore.Tests")]
     public class SimpleTest : IClassFixture<ODatalizerWebApplicationFactory<Startup>>
     {
         private readonly HttpClient _client;
@@ -26,8 +27,8 @@ namespace ODatalizer.EFCore.Tests
             _client = factory.CreateClient();
         }
 
-        [Fact(DisplayName = "GET ~/entitysets")]
-        public async Task _00_Get()
+        [Fact(DisplayName = "GET ~/entitysets"), TestPriority(0)]
+        public async Task Get()
         {
             var response = await _client.GetAsync("/sample/Products?$count=true");
 
@@ -42,8 +43,8 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal(5, products.Count());
         }
 
-        [Fact(DisplayName = "GET ~/entitysets(key)")]
-        public async Task _01_Find()
+        [Fact(DisplayName = "GET ~/entitysets(key)"), TestPriority(0)]
+        public async Task Find()
         {
             var response = await _client.GetAsync("/sample/Products(1L)");
 
@@ -54,8 +55,8 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal("Sample 1", (string)result.SelectToken("$.Name"));
         }
 
-        [Fact(DisplayName = "POST ~/entitysets")]
-        public async Task _02_Post()
+        [Fact(DisplayName = "POST ~/entitysets"), TestPriority(1)]
+        public async Task Post()
         {
             var response = await _client.PostAsync("/sample/Products", Helpers.JSON(new
             {
@@ -71,8 +72,8 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal("Sample X", (string)result.SelectToken("$.Name"));
         }
 
-        [Fact(DisplayName = "PUT ~/entitysets(key)")]
-        public async Task _03_Put()
+        [Fact(DisplayName = "PUT ~/entitysets(key)"), TestPriority(1)]
+        public async Task Put()
         {
             var response = await _client.PutAsync("/sample/Products(1L)", Helpers.JSON(new
             {
@@ -93,8 +94,8 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal(12.00m, (decimal)result.SelectToken("$.UnitPrice"));
         }
 
-        [Fact(DisplayName = "PATCH ~/entitysets(key)")]
-        public async Task _04_Patch()
+        [Fact(DisplayName = "PATCH ~/entitysets(key)"), TestPriority(1)]
+        public async Task Patch()
         {
             var response = await _client.PatchAsync("/sample/Products(1L)", Helpers.JSON(new
             {
@@ -113,8 +114,8 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal("Sample 1", (string)result.SelectToken("$.Name"));
         }
 
-        [Fact(DisplayName = "DELETE ~/entitysets(key)")]
-        public async Task _05_Delete()
+        [Fact(DisplayName = "DELETE ~/entitysets(key)"), TestPriority(2)]
+        public async Task Delete()
         {
             var response = await _client.DeleteAsync("/sample/Products(1L)");
 
