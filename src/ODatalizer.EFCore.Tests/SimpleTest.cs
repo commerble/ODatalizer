@@ -96,5 +96,37 @@ namespace ODatalizer.EFCore.Tests
 
             Assert.Equal(12.00m, (decimal)result.SelectToken("$.UnitPrice"));
         }
+
+        [Fact(DisplayName = "PATCH ~/entitysets(key)")]
+        public async Task _04_Patch()
+        {
+            var response = await _client.PatchAsync("/sample/Products(1L)", Helpers.JSON(new
+            {
+                UnitPrice = 99.99m,
+            }));
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal(99.99m, (decimal)result.SelectToken("$.UnitPrice"));
+            Assert.Equal("Sample 1", (string)result.SelectToken("$.Name"));
+        }
+
+        [Fact(DisplayName = "DELETE ~/entitysets(key)")]
+        public async Task _05_DELETE()
+        {
+            var response = await _client.DeleteAsync("/sample/Products(1L)");
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
     }
 }
