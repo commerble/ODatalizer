@@ -17,6 +17,7 @@ using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace <#= Namespace #>
 {
@@ -49,9 +50,9 @@ namespace <#= Namespace #>
 
         [EnableQuery]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
-        public IActionResult Get(<#= keysTypeNameComma #>)
+        public async Task<IActionResult> Get(<#= keysTypeNameComma #>)
         {
-            var entity = _db.<#= entitySetName #>.Find(<#= keysNameComma #>);
+            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (entity == null)
                 return NotFound();
@@ -60,20 +61,20 @@ namespace <#= Namespace #>
         }
 
         [ODataRoute("<#= entitySetName #>", RouteName = <#= RouteNameValue #>)]
-        public IActionResult Post([FromBody]<#= entityName #> entity)
+        public async Task<IActionResult> Post([FromBody]<#= entityName #> entity)
         {
             if (!ModelState.IsValid)
                 return BadRequest(entity);
 
             _db.<#= entitySetName #>.Add(entity);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             
             return Created(entity);
         }
 
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
-        public IActionResult Put(<#= keysTypeNameComma #>, [FromBody]<#= entityName #> entity)
+        public async Task<IActionResult> Put(<#= keysTypeNameComma #>, [FromBody]<#= entityName #> entity)
         {
             if (<#= keys.Select(key => key.Name + " != entity." + key.Name).Join(" || ") #>)
                 return BadRequest();
@@ -83,7 +84,7 @@ namespace <#= Namespace #>
 
             //using var tran = _db.Database.BeginTransaction();
 
-            var original = _db.<#= entitySetName #>.Find(<#= keysNameComma #>);
+            var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (original == null)
                 return NotFound();
@@ -92,7 +93,7 @@ namespace <#= Namespace #>
 
             entry.State = EntityState.Modified;
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             //tran.Commit();
 
@@ -100,17 +101,17 @@ namespace <#= Namespace #>
         }
 
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
-        public IActionResult Patch(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
+        public async Task<IActionResult> Patch(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
         {
             //using var tran = _db.Database.BeginTransaction();
-            var original = _db.<#= entitySetName #>.Find(<#= keysNameComma #>);
+            var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (original == null)
                 return NotFound();
 
             delta.Patch(original);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             //tran.Commit();
 
@@ -118,18 +119,18 @@ namespace <#= Namespace #>
         }
 
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
-        public IActionResult Delete(<#= keysTypeNameComma #>)
+        public async Task<IActionResult> Delete(<#= keysTypeNameComma #>)
         {
             //using var tran = _db.Database.BeginTransaction();
          
-            var entity = _db.<#= entitySetName #>.Find(<#= keysNameComma #>);
+            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (entity == null)
                 return NotFound();
 
             _db.<#= entitySetName #>.Remove(entity);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             //tran.Commit();
 

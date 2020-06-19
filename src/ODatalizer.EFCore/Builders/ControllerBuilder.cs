@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace ODatalizer.EFCore.Builders
 {
@@ -30,7 +31,17 @@ namespace ODatalizer.EFCore.Builders
         public Assembly Build<TDbContext>(string code, TDbContext db) where TDbContext : DbContext
         {
             var tree = CSharpSyntaxTree.ParseText(code);
-            var imports = new[] { "mscorlib", "netstandard", "System.Private.CoreLib", "System.Private.Uri", "System.Runtime", "System.Linq.Expressions", "Microsoft.Bcl.AsyncInterfaces" };
+            var imports = new[] { 
+                "mscorlib", 
+                "netstandard", 
+                "System.Private.CoreLib", 
+                "System.Private.Uri", 
+                "System.Runtime", 
+                "System.Linq.Expressions", 
+                "System.Threading.Tasks", 
+                "System.Threading.Tasks.Extensions", 
+                "Microsoft.Bcl.AsyncInterfaces" 
+            };
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => imports.Contains(asm.GetName().Name)).Concat(new[] {
                 typeof(DbContext).Assembly,
                 typeof(Microsoft.AspNetCore.Mvc.IActionResult).Assembly,
