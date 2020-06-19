@@ -3,13 +3,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.OData.Edm;
-using ODatalizer.EFCore.Extensions;
 using ODatalizer.EFCore.Templates;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace ODatalizer.EFCore.Builders
 {
