@@ -12,6 +12,7 @@ namespace Sample.EFCore.Data
             db.Products.Add(new Product { Name = "Sample 3", UnitPrice = 3m, SalesPatternId = 1 });
             db.Products.Add(new Product { Name = "Sample 4", UnitPrice = 4m, SalesPatternId = 1 });
             db.Products.Add(new Product { Name = "Sample 5", UnitPrice = 5m, SalesPatternId = 1 });
+            db.SalesProducts.Add(new SalesProduct { ProductId = 1, TaxRoundMode = TaxRoundMode.None });
             db.SaveChanges();
         }
     }

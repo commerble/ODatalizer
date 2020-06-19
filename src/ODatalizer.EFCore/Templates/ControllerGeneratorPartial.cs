@@ -61,6 +61,9 @@ namespace ODatalizer.EFCore.Templates
             if (_typeMap.ContainsKey(edm))
                 return _typeMap[edm];
 
+            if (edm.StartsWith("Edm.") == false)
+                return edm;
+
             throw new NotImplementedException();
         }
     }

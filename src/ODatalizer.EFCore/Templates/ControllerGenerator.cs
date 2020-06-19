@@ -46,6 +46,7 @@ using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ");
@@ -60,6 +61,7 @@ namespace ");
         var keysTypeNameComma = keys.Select(key => Type(key.Type) + " " + key.Name).Join(", ");
         var keysNameComma = keys.Select(key => key.Name).Join(", ");
         var keysNameBraceComma = keys.Select(key => "{" + key.Name + "}").Join(", ");
+        var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name).Join(" && ");
 
             this.Write("\n    public class ");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
@@ -174,7 +176,36 @@ namespace ");
                     "   _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            //tran.C" +
-                    "ommit();\n\n            return NoContent();\n        }\n    }\n");
+                    "ommit();\n\n            return NoContent();\n        }\n\n    ");
+
+        foreach(var one in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() == false))
+        {
+            var navName = one.NavigationProperty.Name;
+    
+            this.Write("\n        [EnableQuery]\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("\", RouteName = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
+            this.Write(")]\n        public IActionResult Get");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(")\n        {\n            var entity = _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".Include(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("\").Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(").Select(o => o.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(").FirstOrDefault();\n            \n            if (entity == null)\n                " +
+                    "return NotFound();\n            \n            return Ok(entity);\n        }\n    ");
+ } 
+            this.Write("\n    }\n");
  } 
             this.Write("\n}");
             return this.GenerationEnvironment.ToString();

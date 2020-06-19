@@ -17,6 +17,7 @@ using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace <#= Namespace #>
@@ -30,6 +31,7 @@ namespace <#= Namespace #>
         var keysTypeNameComma = keys.Select(key => Type(key.Type) + " " + key.Name).Join(", ");
         var keysNameComma = keys.Select(key => key.Name).Join(", ");
         var keysNameBraceComma = keys.Select(key => "{" + key.Name + "}").Join(", ");
+        var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name).Join(" && ");
 #>
     public class <#= controllerName #> : ODataController
     {
@@ -138,6 +140,24 @@ namespace <#= Namespace #>
 
             return NoContent();
         }
+
+    <#
+        foreach(var one in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() == false))
+        {
+            var navName = one.NavigationProperty.Name;
+    #>
+        [EnableQuery]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        public IActionResult Get<#= navName #>(<#= keysTypeNameComma #>)
+        {
+            var entity = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).Select(o => o.<#= navName #>).FirstOrDefault();
+            
+            if (entity == null)
+                return NotFound();
+            
+            return Ok(entity);
+        }
+    <# } #>
     }
 <# } #>
 }
