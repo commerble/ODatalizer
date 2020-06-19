@@ -25,7 +25,7 @@ namespace ODatalizer.EFCore.Tests
             _edm = EdmBuilder.Build(scope.ServiceProvider.GetRequiredService<SampleDbContext>());
         }
 
-        [Fact]
+        [Fact(DisplayName = "~/")]
         public async Task GetServiceDocument()
         {
             var response = await _client.GetAsync("/sample/");
@@ -40,7 +40,7 @@ namespace ODatalizer.EFCore.Tests
             Assert.True(Enumerable.SequenceEqual(expected, actual));
         }
 
-        [Fact]
+        [Fact(DisplayName = "~/$metadata")]
         public async Task GetMetadata()
         {
             var response = await _client.GetAsync("/sample/$metadata");

@@ -23,22 +23,17 @@ namespace ODatalizer.EFCore.Tests
     /// </summary>
     public class SimpleTest : IClassFixture<ODatalizerWebApplicationFactory<Startup>>
     {
-        private readonly ODatalizerWebApplicationFactory<Startup> _factory;
+        private readonly HttpClient _client;
 
         public SimpleTest(ODatalizerWebApplicationFactory<Startup> factory)
         {
-            _factory = factory;
+            _client = factory.CreateClient();
         }
 
-        /// <summary>
-        /// GET ~/entitysets
-        /// </summary>
-        /// <returns></returns>
-        [Fact]
+        [Fact(DisplayName = "GET ~/entitysets")]
         public async Task _00_Get()
         {
-            var client = _factory.CreateClient();
-            var response = await client.GetAsync("/sample/Products?$count=true");
+            var response = await _client.GetAsync("/sample/Products?$count=true");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -51,15 +46,10 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal(5, products.Count());
         }
 
-        /// <summary>
-        /// GET ~/entitysets(key)
-        /// </summary>
-        /// <returns></returns>
-        [Fact]
+        [Fact(DisplayName = "GET ~/entitysets(key)")]
         public async Task _01_Find()
         {
-            var client = _factory.CreateClient();
-            var response = await client.GetAsync("/sample/Products(1L)");
+            var response = await _client.GetAsync("/sample/Products(1L)");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -68,15 +58,10 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal("Sample 1", (string)result.SelectToken("$.Name"));
         }
 
-        /// <summary>
-        /// POST ~/entitysets
-        /// </summary>
-        /// <returns></returns>
-        [Fact]
+        [Fact(DisplayName = "POST ~/entitysets")]
         public async Task _02_Post()
         {
-            var client = _factory.CreateClient();
-            var response = await client.PostAsync("/sample/Products", Helpers.JSON(new
+            var response = await _client.PostAsync("/sample/Products", Helpers.JSON(new
             {
                 Name = "Sample X",
                 UnitPrice = 9.99m,
@@ -89,5 +74,7 @@ namespace ODatalizer.EFCore.Tests
 
             Assert.Equal("Sample X", (string)result.SelectToken("$.Name"));
         }
+
+        
     }
 }
