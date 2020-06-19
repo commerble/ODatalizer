@@ -114,7 +114,7 @@ namespace ODatalizer.EFCore.Tests
         }
 
         [Fact(DisplayName = "DELETE ~/entitysets(key)")]
-        public async Task _05_DELETE()
+        public async Task _05_Delete()
         {
             var response = await _client.DeleteAsync("/sample/Products(1L)");
 
