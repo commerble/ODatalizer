@@ -126,6 +126,8 @@ namespace ");
             if (original == null)
                 return NotFound();
 
+            _db.Entry(original).State = EntityState.Detached;
+
             var entry = _db.Entry(entity);
 
             entry.State = EntityState.Modified;

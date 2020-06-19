@@ -75,6 +75,26 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal("Sample X", (string)result.SelectToken("$.Name"));
         }
 
-        
+        [Fact(DisplayName = "PUT ~/entitysets(key)")]
+        public async Task _03_Put()
+        {
+            var response = await _client.PutAsync("/sample/Products(1L)", Helpers.JSON(new
+            {
+                Id = 1L,
+                Name = "Sample 1",
+                UnitPrice = 12.00m,
+                SalesPatternId = 1,
+            }));
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal(12.00m, (decimal)result.SelectToken("$.UnitPrice"));
+        }
     }
 }
