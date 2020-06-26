@@ -37,9 +37,9 @@ namespace ODatalizer.EFCore.Templates
             _namespace = @namespace;
         }
 
-        public static ControllerGenerator Create<TDbContext>(IEdmModel edmModel, TDbContext db, string routeName, string @namespace) where TDbContext : DbContext
+        public static ControllerGenerator Create(ODatalizerEndpoint ep)
         {
-            return new ControllerGenerator(edmModel, db.GetType().FullName, routeName, @namespace);
+            return new ControllerGenerator(ep.EdmModel, ep.DbContext.GetType().FullName, ep.RouteName, ep.Namespace);
         }
 
         private IDictionary<string, string> _typeMap = new Dictionary<string, string>

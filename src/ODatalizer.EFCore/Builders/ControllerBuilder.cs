@@ -20,13 +20,13 @@ namespace ODatalizer.EFCore.Builders
         {
             _logger = logger;
         }
-        public Assembly Build<TDbContext>(IEdmModel edmModel, TDbContext db, string routeName, string @namespace) where TDbContext : DbContext
+        public Assembly Build(ODatalizerEndpoint ep)
         {
-            var code = ControllerGenerator.Create(edmModel, db, routeName, @namespace).TransformText();
+            var code = ControllerGenerator.Create(ep).TransformText();
             _logger.LogInformation(ControllerCodeGenerated, code);
-            return Build(code, db);
+            return Build(code);
         }
-        public Assembly Build<TDbContext>(string code, TDbContext db) where TDbContext : DbContext
+        public Assembly Build(string code)
         {
             var tree = CSharpSyntaxTree.ParseText(code);
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false).Distinct();

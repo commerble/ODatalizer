@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNet.OData.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.OData.Edm;
 using System;
 using System.Linq;
@@ -24,25 +23,15 @@ namespace ODatalizer.EFCore.Builders
             }
 
             // Add Entities
-            var relationEntityTypes = entityTypes.Where(t => t.GetForeignKeys().Count() == t.GetProperties().Count()).ToList();
-            var targetEntityTypes = entityTypes.Except(relationEntityTypes);
-            foreach (var entityType in targetEntityTypes)
+            foreach (var entityType in entityTypes)
             {
                 var name = dbSets.First(p => p.PropertyType.GenericTypeArguments.Contains(entityType.ClrType)).Name;
                 var type = builder.AddEntityType(entityType.ClrType);
-
 
                 foreach (var key in entityType.FindPrimaryKey().Properties)
                 {
                     type.HasKey(key.PropertyInfo);
                 }
-
-                var removes = entityType.GetNavigations().Where(p => relationEntityTypes.Contains(p.GetTargetType()));
-                foreach (var remove in removes)
-                {
-                    type.RemoveProperty(remove.PropertyInfo);
-                }
-
 
                 builder.AddEntitySet(name, type);
             }

@@ -13,7 +13,7 @@ namespace ODatalizer.EFCore
             var part = app.ApplicationServices.GetRequiredService<ApplicationPartManager>();
             foreach (var ep in endpoints)
             {
-                var assembly = controllerBuilder.Build(ep.EdmModel, ep.DbContext, ep.RouteName, ep.Namespace);
+                var assembly = controllerBuilder.Build(ep);
                 part.ApplicationParts.Add(new AssemblyPart(assembly));
             }
         }

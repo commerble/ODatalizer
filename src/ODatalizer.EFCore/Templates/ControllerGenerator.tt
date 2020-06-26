@@ -13,10 +13,13 @@
 //------------------------------------------------------------------------------
 
 using Microsoft.AspNet.OData;
+using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.OData.Edm;
+using Microsoft.OData.UriParser;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -33,8 +36,9 @@ namespace <#= Namespace #>
         var keysNameBraceComma = keys.Select(key => "{" + key.Name + "}").Join(", ");
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name).Join(" && ");
 #>
-    public class <#= controllerName #> : ODataController
+    public partial class <#= controllerName #> : ODataController
     {
+        private const string RouteName = <#= RouteNameValue #>;
         private readonly <#= DbContextTypeName #> _db;
         private readonly ILogger<<#= controllerName #>> _logger;
         public <#= controllerName #>(<#= DbContextTypeName #> db, ILogger<<#= controllerName #>> logger)
@@ -44,14 +48,14 @@ namespace <#= Namespace #>
         }
 
         [EnableQuery]
-        [ODataRoute("<#= entitySetName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>", RouteName = RouteName)]
         public IActionResult Get()
         {
             return Ok(_db.<#= entitySetName #>);
         }
 
         [EnableQuery]
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Get(<#= keysTypeNameComma #>)
         {
             var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
@@ -62,7 +66,7 @@ namespace <#= Namespace #>
             return Ok(entity);
         }
 
-        [ODataRoute("<#= entitySetName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>", RouteName = RouteName)]
         public async Task<IActionResult> Post([FromBody]<#= entityName #> entity)
         {
             if (!ModelState.IsValid)
@@ -75,7 +79,7 @@ namespace <#= Namespace #>
             return Created(entity);
         }
 
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Put(<#= keysTypeNameComma #>, [FromBody]<#= entityName #> entity)
         {
             if (<#= keys.Select(key => key.Name + " != entity." + key.Name).Join(" || ") #>)
@@ -104,7 +108,7 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Patch(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
         {
             //using var tran = _db.Database.BeginTransaction();
@@ -122,7 +126,7 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Delete(<#= keysTypeNameComma #>)
         {
             //using var tran = _db.Database.BeginTransaction();
@@ -142,7 +146,9 @@ namespace <#= Namespace #>
         }
 
     <#
-        foreach(var one in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() == false))
+        foreach(var one in entitySet.NavigationPropertyBindings.Where(n => 
+            n.NavigationProperty.TargetMultiplicity() == EdmMultiplicity.One ||
+            n.NavigationProperty.TargetMultiplicity() == EdmMultiplicity.ZeroOrOne))
         {
             var navName = one.NavigationProperty.Name;
             var navEntityType = one.NavigationProperty.ToEntityType();
@@ -151,7 +157,7 @@ namespace <#= Namespace #>
 
     #>
         [EnableQuery]
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
         public IActionResult Get<#= navName #>(<#= keysTypeNameComma #>)
         {
             var entity = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).Select(o => o.<#= navName #>).FirstOrDefault();
@@ -162,7 +168,7 @@ namespace <#= Namespace #>
             return Ok(entity);
         }
 
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
         public async Task<IActionResult> Post<#= navName #>(<#= keysTypeNameComma #>, [FromBody]<#= navEntityName #> entity)
         {
             if (!ModelState.IsValid)
@@ -187,7 +193,7 @@ namespace <#= Namespace #>
             return Created(entity);
         }
 
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
         public async Task<IActionResult> Put<#= navName #>(<#= keysTypeNameComma #>, [FromBody]<#= navEntityName #> entity)
         {
             if (!ModelState.IsValid)
@@ -216,7 +222,7 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
         public async Task<IActionResult> Patch<#= navName #>(<#= keysTypeNameComma #>, [FromBody]Delta<<#= navEntityName #>> delta)
         {
             //using var tran = _db.Database.BeginTransaction();
@@ -235,7 +241,7 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = <#= RouteNameValue #>)]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
         public async Task<IActionResult> Delete<#= navName #>(<#= keysTypeNameComma #>)
         {
             //using var tran = _db.Database.BeginTransaction();
@@ -254,6 +260,14 @@ namespace <#= Namespace #>
             return NoContent();
         }
     <# } #>
+    <# 
+        foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() )) 
+        {
+            var navName = many.NavigationProperty.Name;
+            
+    #>
+        
+    <#  }  #>
     }
 <# } #>
 }

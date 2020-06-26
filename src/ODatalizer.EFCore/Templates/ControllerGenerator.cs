@@ -42,10 +42,13 @@ namespace ODatalizer.EFCore.Templates
 //------------------------------------------------------------------------------
 
 using Microsoft.AspNet.OData;
+using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.OData.Edm;
+using Microsoft.OData.UriParser;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -63,9 +66,11 @@ namespace ");
         var keysNameBraceComma = keys.Select(key => "{" + key.Name + "}").Join(", ");
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name).Join(" && ");
 
-            this.Write("\n    public class ");
+            this.Write("\n    public partial class ");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
-            this.Write(" : ODataController\n    {\n        private readonly ");
+            this.Write(" : ODataController\n    {\n        private const string RouteName = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
+            this.Write(";\n        private readonly ");
             this.Write(this.ToStringHelper.ToStringWithCulture(DbContextTypeName));
             this.Write(" _db;\n        private readonly ILogger<");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
@@ -78,17 +83,14 @@ namespace ");
             this.Write("> logger)\n        {\n            _db = db;\n            _logger = logger;\n        }" +
                     "\n\n        [EnableQuery]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public IActionResult Get()\n        {\n            return Ok(_db.");
+            this.Write("\", RouteName = RouteName)]\n        public IActionResult Get()\n        {\n         " +
+                    "   return Ok(_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(");\n        }\n\n        [EnableQuery]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Get(");
+            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Get(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(")\n        {\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
@@ -97,9 +99,8 @@ namespace ");
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
                     "   return Ok(entity);\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Post([FromBody]");
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post([FromBod" +
+                    "y]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
             this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
                     "dRequest(entity);\n\n            _db.");
@@ -109,9 +110,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Put(");
+            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Put(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", [FromBody]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
@@ -145,9 +144,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Patch(");
+            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Patch(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", [FromBody]Delta<");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
@@ -163,9 +160,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Delete(");
+            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(")\n        {\n            //using var tran = _db.Database.BeginTransaction();\n     " +
                     "    \n            var entity = await _db.");
@@ -178,7 +173,9 @@ namespace ");
             this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            //tran.C" +
                     "ommit();\n\n            return NoContent();\n        }\n\n    ");
 
-        foreach(var one in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() == false))
+        foreach(var one in entitySet.NavigationPropertyBindings.Where(n => 
+            n.NavigationProperty.TargetMultiplicity() == EdmMultiplicity.One ||
+            n.NavigationProperty.TargetMultiplicity() == EdmMultiplicity.ZeroOrOne))
         {
             var navName = one.NavigationProperty.Name;
             var navEntityType = one.NavigationProperty.ToEntityType();
@@ -192,9 +189,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public IActionResult Get");
+            this.Write("\", RouteName = RouteName)]\n        public IActionResult Get");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -214,9 +209,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Post");
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -242,9 +235,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Put");
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Put");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -285,9 +276,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Patch");
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Patch");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -322,9 +311,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RouteNameValue));
-            this.Write(")]\n        public async Task<IActionResult> Delete");
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -342,6 +329,15 @@ namespace ");
             this.Write(" = null;\n\n            await _db.SaveChangesAsync();\n\n            //tran.Commit();" +
                     "\n\n            return NoContent();\n        }\n    ");
  } 
+            this.Write("\n    ");
+ 
+        foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() )) 
+        {
+            var navName = many.NavigationProperty.Name;
+            
+    
+            this.Write("\n        \n    ");
+  }  
             this.Write("\n    }\n");
  } 
             this.Write("\n}");
