@@ -29,7 +29,7 @@ namespace ODatalizer.EFCore.Builders
         public Assembly Build(string code)
         {
             var tree = CSharpSyntaxTree.ParseText(code);
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false).Distinct();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false && string.IsNullOrEmpty(asm.Location) == false).Distinct();
             var comp = CSharpCompilation.Create(
                 assemblyName: Path.GetRandomFileName(),
                 syntaxTrees: new[] { tree },
