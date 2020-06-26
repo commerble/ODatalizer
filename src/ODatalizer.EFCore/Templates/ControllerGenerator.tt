@@ -158,10 +158,9 @@ namespace <#= Namespace #>
     #>
         [EnableQuery]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
-        public IActionResult Get<#= navName #>(<#= keysTypeNameComma #>)
+        public async Task<IActionResult> Get<#= navName #>(<#= keysTypeNameComma #>)
         {
-            var entity = _db.<#= entitySetName #>.Find(<#= keysNameComma #>);
-            //var entity = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).Select(o => o.<#= navName #>).FirstOrDefault();
+            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
             
             if (entity == null)
                 return NotFound();
@@ -249,7 +248,7 @@ namespace <#= Namespace #>
 
             var principal = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).FirstOrDefault();
 
-            if (principal.<#= navName #> == null)
+            if (principal == null)
                 return NotFound();
 
             principal.<#= navName #> = null;
@@ -265,7 +264,13 @@ namespace <#= Namespace #>
         foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() && IsIgnore(n.NavigationProperty) == false )) 
         {
             var navName = many.NavigationProperty.Name;
-            
+            var navEntityType = many.NavigationProperty.ToEntityType();
+            var navEntityName = navEntityType.FullTypeName();
+            var navKeys = navEntityType.DeclaredKey;
+            var navKeysTypeNameComma = navKeys.Select(key => Type(key.Type) + " " + key.Name + "1").Join(", ");
+            var navKeysNameComma = navKeys.Select(key => key.Name + "1").Join(", ");
+            var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + "1" + "}").Join(", ");
+            var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + "1").Join(" && ");
     #>
         [EnableQuery]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
@@ -277,6 +282,110 @@ namespace <#= Namespace #>
                 return NotFound();
             
             return Ok(entity.<#= navName #>);
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)", RouteName = RouteName)]
+        public async Task<IActionResult> Get<#= navName #>One(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
+        {
+            var parent = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            
+            if (parent == null)
+                return NotFound();
+
+            var entity = parent.<#= navName #>.Where(<#= navKeysNameCondition #>).FirstOrDefault();
+
+            if (entity == null)
+                return NotFound();
+
+            return Ok(entity);
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
+        public async Task<IActionResult> Post<#= navName #>(<#= keysTypeNameComma #>, [FromBody]<#=navEntityName#> entity)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(entity);
+            
+            var parent = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            
+            if (parent == null)
+                return NotFound();
+            
+            parent.<#= navName #>.Add(entity);
+
+            await _db.SaveChangesAsync();
+
+            return Created(entity);
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)", RouteName = RouteName)]
+        public async Task<IActionResult> Put<#= navName #>(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>, [FromBody]<#=navEntityName#> entity)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(entity);
+            
+            var parent = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            
+            if (parent == null)
+                return NotFound();
+
+            var original = parent.<#= navName #>.Where(<#= navKeysNameCondition #>).FirstOrDefault();
+
+            if (original == null)
+                return NotFound();
+            
+            if (<#= navKeys.Select(key => "original." + key.Name + " != entity." + key.Name).Join(" || ") #>)
+                return BadRequest();
+
+            _db.Entry(original).State = EntityState.Detached;
+
+            var entry = _db.Entry(entity);
+
+            entry.State = EntityState.Modified;
+
+            await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)", RouteName = RouteName)]
+        public async Task<IActionResult> Patch<#= navName #>(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>, [FromBody]Delta<<#=navEntityName#>> delta)
+        {
+            var parent = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            
+            if (parent == null)
+                return NotFound();
+
+            var original = parent.<#= navName #>.Where(<#= navKeysNameCondition #>).FirstOrDefault();
+
+            if (original == null)
+                return NotFound();
+            
+            delta.Patch(original);
+
+            await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)", RouteName = RouteName)]
+        public async Task<IActionResult> Delete<#= navName #>(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
+        {
+            var parent = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            
+            if (parent == null)
+                return NotFound();
+
+            var entity = parent.<#= navName #>.Where(<#= navKeysNameCondition #>).FirstOrDefault();
+
+            if (entity == null)
+                return NotFound();
+
+            parent.<#= navName #>.Remove(entity);
+
+            await _db.SaveChangesAsync();
+
+            return NoContent();
         }
     <#  }  #>
     }

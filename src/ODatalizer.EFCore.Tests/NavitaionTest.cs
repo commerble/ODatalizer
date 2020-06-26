@@ -128,11 +128,11 @@ namespace ODatalizer.EFCore.Tests
 
             response = await _client.GetAsync("/sample/Products(1L)/SalesProduct");
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
-        [Fact(DisplayName = "GET ~/entitysets(key)/many (one to many)"), TestPriority(0)]
-        public async Task GetOneToMany()
+        [Fact(DisplayName = "GET ~/entitysets(key)/many"), TestPriority(0)]
+        public async Task GetMany()
         {
             var response = await _client.GetAsync("/sample/SalesPatterns(1)/Products");
 
@@ -141,6 +141,74 @@ namespace ODatalizer.EFCore.Tests
             var result = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             Assert.Equal(5, result.SelectTokens("$.value[:]").Count());
+        }
+
+        [Fact(DisplayName = "POST ~/entitysets(key)/many"), TestPriority(1)]
+        public async Task PostMany()
+        {
+            var response = await _client.PostAsync("/sample/SalesPatterns(1)/Products", Helpers.JSON(new { 
+                Name = "Sample X",
+                UnitPrice = 4.00m,
+            }));
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal(1, (int)result.SelectToken("$.SalesPatternId"));
+        }
+
+        [Fact(DisplayName = "PUT ~/entitysets(key)/many"), TestPriority(1)]
+        public async Task PutMany()
+        {
+            var response = await _client.PutAsync("/sample/SalesPatterns(1)/Products(1L)", Helpers.JSON(new
+            {
+                Id = 1,
+                Name = "Sample X",
+                UnitPrice = 4.00m,
+                SalesPatternId = 1
+            })) ;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/SalesPatterns(1)/Products(1L)");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Sample X", (string)result.SelectToken("$.Name"));
+        }
+
+        [Fact(DisplayName = "PATCH ~/entitysets(key)/many"), TestPriority(1)]
+        public async Task PatchMany()
+        {
+            var response = await _client.PatchAsync("/sample/SalesPatterns(1)/Products(1L)", Helpers.JSON(new
+            {
+                Name = "Patched",
+            }));
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/SalesPatterns(1)/Products(1L)");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Patched", (string)result.SelectToken("$.Name"));
+        }
+
+        [Fact(DisplayName = "DELETE ~/entitysets(key)/many"), TestPriority(2)]
+        public async Task DeletehMany()
+        {
+            var response = await _client.DeleteAsync("/sample/SalesPatterns(1)/Products(2L)");
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/SalesPatterns(1)/Products(2L)");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }
