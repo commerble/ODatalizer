@@ -9,6 +9,7 @@ namespace ODatalizer.EFCore.Templates
     public partial class ControllerGenerator
     {
         public IEdmModel EdmModel { get; }
+        public DbContext DbContext { get; }
         public string DbContextTypeName { get; }
         public string RouteName { get; }
 
@@ -29,17 +30,18 @@ namespace ODatalizer.EFCore.Templates
             }
         }
 
-        public ControllerGenerator(IEdmModel edmModel, string dbContextTypeName, string routeName, string @namespace)
+        public ControllerGenerator(ODatalizerEndpoint ep)
         {
-            EdmModel = edmModel;
-            DbContextTypeName = dbContextTypeName;
-            RouteName = routeName;
-            _namespace = @namespace;
+            EdmModel = ep.EdmModel;
+            DbContext = ep.DbContext;
+            DbContextTypeName = ep.DbContext.GetType().FullName;
+            RouteName = ep.RouteName;
+            _namespace = ep.Namespace;
         }
 
         public static ControllerGenerator Create(ODatalizerEndpoint ep)
         {
-            return new ControllerGenerator(ep.EdmModel, ep.DbContext.GetType().FullName, ep.RouteName, ep.Namespace);
+            return new ControllerGenerator(ep);
         }
 
         private IDictionary<string, string> _typeMap = new Dictionary<string, string>
@@ -65,6 +67,13 @@ namespace ODatalizer.EFCore.Templates
                 return edm;
 
             throw new NotImplementedException();
+        }
+
+        public bool IsIgnore(IEdmNavigationProperty property)
+        {
+            var entityType = DbContext.Model.FindEntityType(property.DeclaringEntityType().FullName());
+            var nav = entityType.FindNavigation(property.Name);
+            return nav == null;
         }
     }
 }

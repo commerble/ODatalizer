@@ -160,12 +160,13 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
         public IActionResult Get<#= navName #>(<#= keysTypeNameComma #>)
         {
-            var entity = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).Select(o => o.<#= navName #>).FirstOrDefault();
+            var entity = _db.<#= entitySetName #>.Find(<#= keysNameComma #>);
+            //var entity = _db.<#= entitySetName #>.Include("<#= navName #>").Where(<#= keysNameCondition #>).Select(o => o.<#= navName #>).FirstOrDefault();
             
             if (entity == null)
                 return NotFound();
             
-            return Ok(entity);
+            return Ok(entity.<#=navName#>);
         }
 
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
@@ -261,12 +262,22 @@ namespace <#= Namespace #>
         }
     <# } #>
     <# 
-        foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() )) 
+        foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() && IsIgnore(n.NavigationProperty) == false )) 
         {
             var navName = many.NavigationProperty.Name;
             
     #>
-        
+        [EnableQuery]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>", RouteName = RouteName)]
+        public async Task<IActionResult> Get<#= navName #>(<#= keysTypeNameComma #>)
+        {
+            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            
+            if (entity == null)
+                return NotFound();
+            
+            return Ok(entity.<#= navName #>);
+        }
     <#  }  #>
     }
 <# } #>

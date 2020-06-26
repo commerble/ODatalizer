@@ -195,6 +195,10 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(")\n        {\n            var entity = _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".Find(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n            //var entity = _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Include(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("\").Where(");
@@ -202,8 +206,9 @@ namespace ");
             this.Write(").Select(o => o.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(").FirstOrDefault();\n            \n            if (entity == null)\n                " +
-                    "return NotFound();\n            \n            return Ok(entity);\n        }\n\n      " +
-                    "  [ODataRoute(\"");
+                    "return NotFound();\n            \n            return Ok(entity.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(");\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
@@ -331,12 +336,29 @@ namespace ");
  } 
             this.Write("\n    ");
  
-        foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() )) 
+        foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() && IsIgnore(n.NavigationProperty) == false )) 
         {
             var navName = many.NavigationProperty.Name;
             
     
-            this.Write("\n        \n    ");
+            this.Write("\n        [EnableQuery]\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Get");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(")\n        {\n            var entity = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n            \n            if (entity == null)\n                return NotFound()" +
+                    ";\n            \n            return Ok(entity.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(");\n        }\n    ");
   }  
             this.Write("\n    }\n");
  } 

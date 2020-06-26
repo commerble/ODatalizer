@@ -5,6 +5,7 @@ using ODatalizer.EFCore.Builders;
 using ODatalizer.EFCore.Tests.Host;
 using Sample.EFCore;
 using Sample.EFCore.Data;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -128,6 +129,18 @@ namespace ODatalizer.EFCore.Tests
             response = await _client.GetAsync("/sample/Products(1L)/SalesProduct");
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact(DisplayName = "GET ~/entitysets(key)/many (one to many)"), TestPriority(0)]
+        public async Task GetOneToMany()
+        {
+            var response = await _client.GetAsync("/sample/SalesPatterns(1)/Products");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal(5, result.SelectTokens("$.value[:]").Count());
         }
     }
 }

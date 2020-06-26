@@ -16,6 +16,7 @@ namespace ODatalizer.EFCore.Tests.Host
             {
                 // Create a new service provider.
                 var serviceProvider = new ServiceCollection()
+                    .AddEntityFrameworkProxies()
                     .AddEntityFrameworkInMemoryDatabase()
                     .BuildServiceProvider();
 
@@ -25,7 +26,7 @@ namespace ODatalizer.EFCore.Tests.Host
                 services.Remove(services.First(descriptor => descriptor.ServiceType == typeof(DbContextOptions<SampleDbContext>)));
                 services.AddDbContext<SampleDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("test");
+                    options.UseInMemoryDatabase("test").UseLazyLoadingProxies();
                     options.UseInternalServiceProvider(serviceProvider);
                 });
 
