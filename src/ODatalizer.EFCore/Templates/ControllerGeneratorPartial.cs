@@ -29,12 +29,14 @@ namespace ODatalizer.EFCore.Templates
                 return "ODatalizer.EFCore.Controllers." + name;
             }
         }
+        public int? MaxNestNavigations { get; set; }
 
         public ControllerGenerator(ODatalizerEndpoint ep)
         {
             EdmModel = ep.EdmModel;
             DbContext = ep.DbContext;
             DbContextTypeName = ep.DbContext.GetType().FullName;
+            MaxNestNavigations = ep.MaxNestNavigations;
             RouteName = ep.RouteName;
             _namespace = ep.Namespace;
         }
@@ -74,6 +76,24 @@ namespace ODatalizer.EFCore.Templates
             var entityType = DbContext.Model.FindEntityType(property.DeclaringEntityType().FullName());
             var nav = entityType.FindNavigation(property.Name);
             return nav == null;
+        }
+
+        class NavigationInfo
+        {
+            public IEnumerable<IEdmNavigationProperty> Path;
+        }
+
+        class PathSegment
+        {
+            public int Suffix { get; set; }
+            public string Name { get; set; }
+            public string Type { get; set; }
+            public IEnumerable<IEdmStructuralProperty> Keys { get; set; }
+            public string KeysNameComma { get; set;  }
+            public string KeysTypeNameComma { get; set; }
+            public string KeysNameBraceComma { get; set; }
+            public string KeysNameCondition { get; set; }
+            public EdmMultiplicity Multiplicity { get; set; }
         }
     }
 }

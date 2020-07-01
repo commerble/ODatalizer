@@ -61,10 +61,10 @@ namespace ");
         var keys = entitySet.EntityType().DeclaredKey;
         var controllerName = entitySetName + "Controller";
         var entityName = entitySet.EntityType().FullTypeName();
-        var keysTypeNameComma = keys.Select(key => Type(key.Type) + " " + key.Name).Join(", ");
-        var keysNameComma = keys.Select(key => key.Name).Join(", ");
-        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "}").Join(", ");
-        var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name).Join(" && ");
+        var keysTypeNameComma = keys.Select(key => Type(key.Type) + " " + key.Name + "0").Join(", ");
+        var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
+        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(", ");
+        var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
 
             this.Write("\n    public partial class ");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
@@ -115,7 +115,7 @@ namespace ");
             this.Write(", [FromBody]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
             this.Write(" entity)\n        {\n            if (");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keys.Select(key => key.Name + " != entity." + key.Name).Join(" || ")));
+            this.Write(this.ToStringHelper.ToStringWithCulture(keys.Select(key => key.Name + "0" + " != entity." + key.Name).Join(" || ")));
             this.Write(")\n                return BadRequest();\n        \n            if (!ModelState.IsVal" +
                     "id)\n                return BadRequest(entity);\n\n            //using var tran = _" +
                     "db.Database.BeginTransaction();\n\n            var original = await _db.");
@@ -173,262 +173,148 @@ namespace ");
             this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            //tran.C" +
                     "ommit();\n\n            return NoContent();\n        }\n\n    ");
 
-        foreach(var one in entitySet.NavigationPropertyBindings.Where(n => 
-            n.NavigationProperty.TargetMultiplicity() == EdmMultiplicity.One ||
-            n.NavigationProperty.TargetMultiplicity() == EdmMultiplicity.ZeroOrOne))
+        var stack = new Stack<NavigationInfo>();
+        
+        foreach(var nav in  entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.TargetMultiplicity() != EdmMultiplicity.Unknown))
         {
-            var navName = one.NavigationProperty.Name;
-            var navEntityType = one.NavigationProperty.ToEntityType();
-            var navEntityName = navEntityType.FullTypeName();
-            var navKeys = navEntityType.DeclaredKey;
+            stack.Push(new NavigationInfo { Path = new[]{ nav.NavigationProperty } });
+        }
 
+        while(stack.Count > 0) {
+            var info = stack.Pop();
+            if (MaxNestNavigations.HasValue == false || info.Path.Count() < MaxNestNavigations.Value) {
+                var last = info.Path.Last().ToEntityType();
+                foreach(var nav in last.NavigationProperties().Where(n => n.TargetMultiplicity() != EdmMultiplicity.Unknown))
+                {
+                    if (info.Path.Any(prop => prop.DeclaringType.IsEquivalentTo(nav.DeclaringType)) == false) {
+                        stack.Push(new NavigationInfo { Path = info.Path.Concat(new[]{nav})});
+                    }
+                }
+            }
+
+            var segments = new List<PathSegment>();
+            for (int i = 0, len = info.Path.Count(); i < len; i++)
+            {
+                var suffix = i + 1;
+                var nav = info.Path.ElementAt(i);
+                var navEntityType = nav.ToEntityType();
+                var navKeys = navEntityType.DeclaredKey;
+
+                var navEntityName = navEntityType.FullTypeName();
+                var navName = nav.Name;
+                var navKeysTypeNameComma = navKeys.Select(key => Type(key.Type) + " " + key.Name + suffix).Join(", ");
+                var navKeysNameComma = navKeys.Select(key => key.Name + suffix).Join(", ");
+                var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + suffix + "}").Join(", ");
+                var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
+                
+                segments.Add(new PathSegment{
+                    Suffix = suffix,
+                    Name = navName,
+                    Type = navEntityName,
+                    Keys = navKeys,
+                    KeysTypeNameComma = navKeysTypeNameComma,
+                    KeysNameComma = navKeysNameComma,
+                    KeysNameBraceComma = navKeysNameBraceComma,
+                    KeysNameCondition = navKeysNameCondition,
+                    Multiplicity = nav.TargetMultiplicity()
+                });
+            }
+            var lastNavName = segments.Last().Name;
+            var lastEntityName = segments.Last().Type;
+            var methodSuffix = segments.Select(s => s.Name).Join(string.Empty);
+            var routeSuffixWithoutLast = segments.Take(segments.Count-1).Select(s => s.Name + (s.Multiplicity == EdmMultiplicity.Many ? "(" + s.KeysNameBraceComma +")/" : "/")).Join(string.Empty);
+            var routeSuffix = segments.Select(s => s.Name + (s.Multiplicity == EdmMultiplicity.Many ? "(" + s.KeysNameBraceComma +")" : string.Empty)).Join("/");
+            var searchChainWithoutLastAndDot = segments.Take(segments.Count-1).Select(s => s.Name + (s.Multiplicity == EdmMultiplicity.Many ? ".Where(" + s.KeysNameCondition +").FirstOrDefault()" : string.Empty)).Join("?.");
+            var searchChainWithoutLast = segments.Take(segments.Count-1).Select(s => s.Name + (s.Multiplicity == EdmMultiplicity.Many ? ".Where(" + s.KeysNameCondition +").FirstOrDefault()?." : "?.")).Join(string.Empty);
+            var searchChain = segments.Select(s => s.Name + (s.Multiplicity == EdmMultiplicity.Many ? ".Where(" + s.KeysNameCondition +").FirstOrDefault()" : string.Empty)).Join("?.");
+            var typeNameWithoutLast = segments.Take(segments.Count-1).Where(s => s.Multiplicity == EdmMultiplicity.Many).Select(s => ", " + s.KeysTypeNameComma).Join(string.Empty);
+            var typeName = segments.Where(s => s.Multiplicity == EdmMultiplicity.Many).Select(s => ", " + s.KeysTypeNameComma).Join(string.Empty);
     
             this.Write("\n        [EnableQuery]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffixWithoutLast + lastNavName));
             this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Get");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(")\n        {\n            var entity = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeNameWithoutLast));
+            this.Write(")\n        {\n            var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n            \n            if (entity == null)\n                return NotFound()" +
-                    ";\n            \n            return Ok(entity.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(");\n        }\n\n        [ODataRoute(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", [FromBody]");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
-                    "dRequest(entity);\n\n            //using var tran = _db.Database.BeginTransaction(" +
-                    ");\n\n            var principal = _db.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".Include(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\").Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
-            this.Write(").FirstOrDefault();\n\n            if (principal == null)\n                return No" +
-                    "tFound();\n\n            if (principal.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(" != null)\n                return Conflict();\n\n            principal.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(" = entity;\n\n            await _db.SaveChangesAsync();\n\n            //tran.Commit(" +
-                    ");\n\n            return Created(entity);\n        }\n\n        [ODataRoute(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Put");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", [FromBody]");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
-                    "dRequest(entity);\n\n            //using var tran = _db.Database.BeginTransaction(" +
-                    ");\n\n            var original = _db.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".Include(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\").Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
-            this.Write(").Select(o => o.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(").FirstOrDefault();\n\n            if (original == null)\n                return Not" +
-                    "Found();\n\n            if (");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeys.Select(key => "original." + key.Name + " != entity." + key.Name).Join(" || ")));
-            this.Write(@")
-                return BadRequest();
-
-            _db.Entry(original).State = EntityState.Detached;
-
-            var entry = _db.Entry(entity);
-
-            entry.State = EntityState.Modified;
-
-            await _db.SaveChangesAsync();
-
-            //tran.Commit();
-
-            return NoContent();
-        }
-
-        [ODataRoute(""");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Patch");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", [FromBody]Delta<");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write("> delta)\n        {\n            //using var tran = _db.Database.BeginTransaction()" +
-                    ";\n\n            var original = _db.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".Include(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\").Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
-            this.Write(").Select(o => o.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(@").FirstOrDefault();
-
-            if (original == null)
-                return NotFound();
-
-            delta.Patch(original);
-
-            await _db.SaveChangesAsync();
-
-            //tran.Commit();
-
-            return NoContent();
-        }
-
-        [ODataRoute(""");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(")\n        {\n            //using var tran = _db.Database.BeginTransaction();\n\n    " +
-                    "        var principal = _db.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".Include(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("\").Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
-            this.Write(").FirstOrDefault();\n\n            if (principal == null)\n                return No" +
-                    "tFound();\n\n            principal.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(" = null;\n\n            await _db.SaveChangesAsync();\n\n            //tran.Commit();" +
-                    "\n\n            return NoContent();\n        }\n    ");
- } 
-            this.Write("\n    ");
- 
-        foreach (var many in entitySet.NavigationPropertyBindings.Where(n => n.NavigationProperty.Type.IsCollection() && IsIgnore(n.NavigationProperty) == false )) 
-        {
-            var navName = many.NavigationProperty.Name;
-            var navEntityType = many.NavigationProperty.ToEntityType();
-            var navEntityName = navEntityType.FullTypeName();
-            var navKeys = navEntityType.DeclaredKey;
-            var navKeysTypeNameComma = navKeys.Select(key => Type(key.Type) + " " + key.Name + "1").Join(", ");
-            var navKeysNameComma = navKeys.Select(key => key.Name + "1").Join(", ");
-            var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + "1" + "}").Join(", ");
-            var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + "1").Join(" && ");
-    
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "            \n            return Ok(root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChainWithoutLast + lastNavName));
+            this.Write(");\n        }\n\n        ");
+ if (segments.Last().Multiplicity == EdmMultiplicity.Many) { 
             this.Write("\n        [EnableQuery]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffix));
             this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Get");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(")\n        {\n            var entity = await _db.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n            \n            if (entity == null)\n                return NotFound()" +
-                    ";\n            \n            return Ok(entity.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(");\n        }\n\n        [ODataRoute(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Get");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
             this.Write("One(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
-            this.Write(")\n        {\n            var parent = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeName));
+            this.Write(")\n        {\n            var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n            \n            if (parent == null)\n                return NotFound()" +
-                    ";\n\n            var entity = parent.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(".Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameCondition));
-            this.Write(").FirstOrDefault();\n\n            if (entity == null)\n                return NotFo" +
-                    "und();\n\n            return Ok(entity);\n        }\n\n        [ODataRoute(\"");
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var entity = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChain));
+            this.Write(";\n\n            if (entity == null)\n                return NotFound();\n\n          " +
+                    "  return Ok(entity);\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffixWithoutLast + lastNavName));
             this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeNameWithoutLast));
             this.Write(", [FromBody]");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastEntityName));
             this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
-                    "dRequest(entity);\n            \n            var parent = await _db.");
+                    "dRequest(entity);\n            \n            var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n            \n            if (parent == null)\n                return NotFound()" +
-                    ";\n            \n            parent.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "            \n            root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChainWithoutLast + lastNavName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n\n            return Crea" +
                     "ted(entity);\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Put");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffix));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Put");
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeName));
             this.Write(", [FromBody]");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastEntityName));
             this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
-                    "dRequest(entity);\n            \n            var parent = await _db.");
+                    "dRequest(entity);\n            \n            var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n            \n            if (parent == null)\n                return NotFound()" +
-                    ";\n\n            var original = parent.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(".Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameCondition));
-            this.Write(").FirstOrDefault();\n\n            if (original == null)\n                return Not" +
-                    "Found();\n            \n            if (");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeys.Select(key => "original." + key.Name + " != entity." + key.Name).Join(" || ")));
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var original = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChain));
+            this.Write(";\n\n            if (original == null)\n                return NotFound();\n         " +
+                    "   \n            if (");
+            this.Write(this.ToStringHelper.ToStringWithCulture(segments.Last().Keys.Select(key => "original." + key.Name + " != entity." + key.Name).Join(" || ")));
             this.Write(@")
                 return BadRequest();
 
@@ -448,58 +334,163 @@ namespace ");
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Patch");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffix));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Patch");
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeName));
             this.Write(", [FromBody]Delta<");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write("> delta)\n        {\n            var parent = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastEntityName));
+            this.Write("> delta)\n        {\n            var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n            \n            if (parent == null)\n                return NotFound()" +
-                    ";\n\n            var original = parent.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(".Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameCondition));
-            this.Write(").FirstOrDefault();\n\n            if (original == null)\n                return Not" +
-                    "Found();\n            \n            delta.Patch(original);\n\n            await _db." +
-                    "SaveChangesAsync();\n\n            return NoContent();\n        }\n\n        [ODataRo" +
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var original = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChain));
+            this.Write(";\n\n            if (original == null)\n                return NotFound();\n         " +
+                    "   \n            delta.Patch(original);\n\n            await _db.SaveChangesAsync()" +
+                    ";\n\n            return NoContent();\n        }\n\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffix));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete");
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeName));
+            this.Write(")\n        {\n            var root = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var entity = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChain));
+            this.Write(";\n\n            if (entity == null)\n                return NotFound();\n\n          " +
+                    "  _db.Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            re" +
+                    "turn NoContent();\n        }\n\n        ");
+ } else { 
+            this.Write("\n\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffixWithoutLast + lastNavName));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post");
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeNameWithoutLast));
+            this.Write(", [FromBody]");
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastEntityName));
+            this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
+                    "dRequest(entity);\n\n            //using var tran = _db.Database.BeginTransaction(" +
+                    ");\n\n            var root = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var principal = root");
+            this.Write(this.ToStringHelper.ToStringWithCulture(segments.Count > 1 ? "." + searchChainWithoutLastAndDot : string.Empty));
+            this.Write(";\n\n            if (principal == null)\n                return NotFound();\n\n       " +
+                    "     if (principal.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastNavName));
+            this.Write(" != null)\n                return Conflict();\n\n            principal.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastNavName));
+            this.Write(" = entity;\n\n            await _db.SaveChangesAsync();\n\n            //tran.Commit(" +
+                    ");\n\n            return Created(entity);\n        }\n\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffixWithoutLast + lastNavName));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Put");
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeNameWithoutLast));
+            this.Write(", [FromBody]");
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastEntityName));
+            this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
+                    "dRequest(entity);\n\n            //using var tran = _db.Database.BeginTransaction(" +
+                    ");\n\n            var root = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var original = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChain));
+            this.Write(";\n\n            if (original == null)\n                return NotFound();\n\n        " +
+                    "    if (");
+            this.Write(this.ToStringHelper.ToStringWithCulture(segments.Last().Keys.Select(key => "original." + key.Name + " != entity." + key.Name).Join(" || ")));
+            this.Write(@")
+                return BadRequest();
+
+            _db.Entry(original).State = EntityState.Detached;
+
+            var entry = _db.Entry(entity);
+
+            entry.State = EntityState.Modified;
+
+            await _db.SaveChangesAsync();
+
+            //tran.Commit();
+
+            return NoContent();
+        }
+
+        [ODataRoute(""");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffixWithoutLast + lastNavName));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Patch");
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeNameWithoutLast));
+            this.Write(", [FromBody]Delta<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(lastEntityName));
+            this.Write("> delta)\n        {\n            //using var tran = _db.Database.BeginTransaction()" +
+                    ";\n\n            var root = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var original = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChain));
+            this.Write(";\n\n            if (original == null)\n                return NotFound();\n\n        " +
+                    "    delta.Patch(original);\n\n            await _db.SaveChangesAsync();\n\n         " +
+                    "   //tran.Commit();\n\n            return NoContent();\n        }\n\n        [ODataRo" +
                     "ute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(routeSuffixWithoutLast + lastNavName));
+            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete");
+            this.Write(this.ToStringHelper.ToStringWithCulture(methodSuffix));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
-            this.Write(")\n        {\n            var parent = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(typeNameWithoutLast));
+            this.Write(")\n        {\n            //using var tran = _db.Database.BeginTransaction();\n\n    " +
+                    "        var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n            \n            if (parent == null)\n                return NotFound()" +
-                    ";\n\n            var entity = parent.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(".Where(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameCondition));
-            this.Write(").FirstOrDefault();\n\n            if (entity == null)\n                return NotFo" +
-                    "und();\n\n            parent.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            return N" +
-                    "oContent();\n        }\n    ");
-  }  
+            this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
+                    "\n            var entity = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(searchChain));
+            this.Write(";\n\n            if (entity == null)\n                return NotFound();\n\n          " +
+                    "  _db.Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            //" +
+                    "tran.Commit();\n\n            return NoContent();\n        }\n        ");
+ } 
+            this.Write("\n    ");
+ } 
             this.Write("\n    }\n");
  } 
             this.Write("\n}");
