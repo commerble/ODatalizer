@@ -210,5 +210,18 @@ namespace ODatalizer.EFCore.Tests
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        [Fact(DisplayName = "GET ~/entitysets(key)/one/one"), TestPriority(0)]
+        public async Task GetOneOne()
+        {
+            var response = await _client.GetAsync("/sample/SalesProducts(1L)/Product/SalesPattern");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Round", (string)result.SelectToken("$.TaxRoundMode"));
+            Assert.Equal(0.1m, (decimal)result.SelectToken("$.TaxRate"));
+        }
     }
 }
