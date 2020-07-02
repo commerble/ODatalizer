@@ -29,7 +29,7 @@ namespace Sample.EFCore
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
         {
-            var ep = new ODatalizerEndpoint(sample, "Sample", "sample", 3);
+            var ep = new ODatalizerEndpoint(sample, "Sample", "sample");
 
             app.UseODatalizer(ep);
 
@@ -49,6 +49,8 @@ namespace Sample.EFCore
                 endpoints.MapODatalizer(ep);
                 endpoints.MapControllers();
             });
+
+            System.GC.Collect();
         }
     }
 }
