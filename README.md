@@ -18,8 +18,8 @@ The simplest implementation of OData server.
 ```cs:Startup.cs
 public void ConfigureServices(IServiceCollection services)
 {
-    // add DbContext
-    services.AddDbContext<SampleDbContext>();
+    // add DbContext and use lazy loading proxies.
+    services.AddDbContext<SampleDbContext>(opt => opt.UseLazyLoadingProxies());
 
     // add ODatalizer services
     services.AddODatalizer();
