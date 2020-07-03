@@ -29,7 +29,9 @@ public void ConfigureServices(IServiceCollection services)
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
 {
     // create ODatalizer ep metadata
-    var ep = new ODatalizerEndpoint(sample, "Sample", "sample");
+    var ep = new ODatalizerEndpoint(db:sample, 
+                                    routeName: "Sample", 
+                                    routePrefix: "sample");
 
     // load ODatalizer controllers
     app.UseODatalizer(ep);
