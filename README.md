@@ -18,8 +18,8 @@ The simplest implementation of OData server.
 ```cs:Startup.cs
 public void ConfigureServices(IServiceCollection services)
 {
-    // add DbContext
-    services.AddDbContext<SampleDbContext>();
+    // add DbContext and use lazy loading proxies.
+    services.AddDbContext<SampleDbContext>(opt => opt.UseLazyLoadingProxies());
 
     // add ODatalizer services
     services.AddODatalizer();
@@ -29,7 +29,9 @@ public void ConfigureServices(IServiceCollection services)
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
 {
     // create ODatalizer ep metadata
-    var ep = new ODatalizerEndpoint(sample, "Sample", "sample");
+    var ep = new ODatalizerEndpoint(db:sample, 
+                                    routeName: "Sample", 
+                                    routePrefix: "sample");
 
     // load ODatalizer controllers
     app.UseODatalizer(ep);
