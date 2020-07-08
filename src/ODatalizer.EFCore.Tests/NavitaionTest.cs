@@ -5,6 +5,7 @@ using ODatalizer.EFCore.Builders;
 using ODatalizer.EFCore.Tests.Host;
 using Sample.EFCore;
 using Sample.EFCore.Data;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -128,7 +129,7 @@ namespace ODatalizer.EFCore.Tests
 
             response = await _client.GetAsync("/sample/Products(1L)/SalesProduct");
 
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact(DisplayName = "GET ~/entitysets(key)/many"), TestPriority(0)]
@@ -222,6 +223,200 @@ namespace ODatalizer.EFCore.Tests
 
             Assert.Equal("Round", (string)result.SelectToken("$.TaxRoundMode"));
             Assert.Equal(0.1m, (decimal)result.SelectToken("$.TaxRate"));
+        }
+
+        [Fact(DisplayName = "GET ~/entitysets(key)/one/many"), TestPriority(0)]
+        public async Task GetOneMany()
+        {
+            var response = await _client.GetAsync("/sample/SalesProducts(1L)/Product/CategoryRelations");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+        }
+
+
+        [Fact(DisplayName = "POST ~/entitysets(key)/one/many"), TestPriority(0)]
+        public async Task PostOneMany()
+        {
+            var response = await _client.PostAsync("/sample/SalesProducts(1L)/Product/CategoryRelations", Helpers.JSON(new { 
+                CategoryId = 2
+            })); ;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal(1, (long)result.SelectToken("$.ProductId"));
+            Assert.Equal(2, (int)result.SelectToken("$.CategoryId"));
+        }
+
+        [Fact(DisplayName = "GET ~/entitysets(key)/.../one"), TestPriority(0)]
+        public async Task GetLastOne()
+        {
+            var response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact(DisplayName = "POST ~/entitysets(key)/.../one"), TestPriority(0)]
+        public async Task PostLastOne()
+        {
+            var response = await _client.PostAsync("/sample/SalesPatterns(1)/Products(3L)/SalesProduct", Helpers.JSON(new
+            {
+                TaxRoundMode = "Floor",
+                TaxRate = 0.1m
+            })); ;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Floor", (string)result.SelectToken("$.TaxRoundMode"));
+            Assert.Equal(0.1m, (decimal)result.SelectToken("$.TaxRate"));
+        }
+
+        [Fact(DisplayName = "PUT ~/entitysets(key)/.../one"), TestPriority(0)]
+        public async Task PutLastOne()
+        {
+            var response = await _client.PutAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign", Helpers.JSON(new
+            {
+                Id = 1,
+                Name = "Put",
+                StartDate = DateTimeOffset.MinValue,
+                EndDate = DateTimeOffset.MaxValue,
+            })); ;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Put", (string)result.SelectToken("$.Name"));
+        }
+
+        [Fact(DisplayName = "PATCH ~/entitysets(key)/.../one"), TestPriority(0)]
+        public async Task PatchLastOne()
+        {
+            var response = await _client.PatchAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign", Helpers.JSON(new
+            {
+                Name = "Patched"
+            })); ;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Patched", (string)result.SelectToken("$.Name"));
+        }
+
+        [Fact(DisplayName = "DELETE ~/entitysets(key)/.../one"), TestPriority(1)]
+        public async Task DeleteLastOne()
+        {
+            var response = await _client.DeleteAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign");
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact(DisplayName = "GET ~/entitysets(key)/.../many"), TestPriority(0)]
+        public async Task GetLastMany()
+        {
+            var response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign/Actions(CampaignId=1,CampaignType='Sample')");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+
+        [Fact(DisplayName = "PUT ~/entitysets(key)/.../many(key)"), TestPriority(0)]
+        public async Task PutLastMany()
+        {
+            var response = await _client.PutAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign/Actions(CampaignId=1,CampaignType='Sample')", Helpers.JSON(new
+            {
+                CampaignId = 1,
+                CampaignType = "Sample",
+                OptionValue = "Option 2"
+            })); ;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign/Actions(CampaignId=1,CampaignType='Sample')");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Option 2", (string)result.SelectToken("$.OptionValue"));
+        }
+
+        [Fact(DisplayName = "PATCH ~/entitysets(key)/.../many(key)"), TestPriority(0)]
+        public async Task PatchLastMany()
+        {
+            var response = await _client.PatchAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign/Actions(CampaignId=1,CampaignType='Sample')", Helpers.JSON(new
+            {
+                OptionValue = "Option Patched"
+            })); ;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign/Actions(CampaignId=1,CampaignType='Sample')");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Option Patched", (string)result.SelectToken("$.OptionValue"));
+        }
+        [Fact(DisplayName = "DELETE ~/entitysets(key)/.../many(key)"), TestPriority(1)]
+        public async Task DeleteLastMany()
+        {
+            var response = await _client.DeleteAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign/Actions(CampaignId=1,CampaignType='Sample')"); ;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(ProductId=1L,CampaignId=1)/Campaign/Actions(CampaignId=1,CampaignType='Sample')");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact(DisplayName = "GET ~/entitysets(key)/.../many", Skip = "Not implemented"), TestPriority(0)]
+        public async Task GetLastMany2()
+        {
+            var response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(1)/Campaign/Actions('Sample')");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+
+        [Fact(DisplayName = "Put ~/entitysets(key)/.../many(key)", Skip = "Not implemented"), TestPriority(0)]
+        public async Task PutLastMany2()
+        {
+            var response = await _client.PutAsync("/sample/Products(1L)/CampaignRelations(1)/Campaign/Actions('Sample')", Helpers.JSON(new
+            {
+                CampaignId = 1,
+                CampaignType = "Sample",
+                OptionValue = "Option 2"
+            })); ;
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            response = await _client.GetAsync("/sample/Products(1L)/CampaignRelations(1)/Campaign/Actions('Sample')");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            Assert.Equal("Option 2", (string)result.SelectToken("$.OptionValue"));
         }
     }
 }

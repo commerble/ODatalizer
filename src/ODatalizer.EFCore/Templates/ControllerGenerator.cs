@@ -246,9 +246,10 @@ namespace ");
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
             this.Write(");\n            \n            if (root == null)\n                return NotFound();\n" +
-                    "            \n            return Ok(root.");
+                    "\n            var entity = root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(searchChainWithoutLast + lastNavName));
-            this.Write(");\n        }\n\n        ");
+            this.Write(";\n\n            if (entity == null)\n                return NotFound();\n           " +
+                    " \n            return Ok(entity);\n        }\n\n        ");
  if (segments.Last().Multiplicity == EdmMultiplicity.Many) { 
             this.Write("\n        [EnableQuery]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));

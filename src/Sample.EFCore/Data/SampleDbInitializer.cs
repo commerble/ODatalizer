@@ -15,11 +15,14 @@ namespace Sample.EFCore.Data
             db.Products.Add(new Product { Name = "Sample 5", UnitPrice = 5m, SalesPatternId = 1 });
             db.SalesProducts.Add(new SalesProduct { ProductId = 1, TaxRoundMode = TaxRoundMode.None });
             db.Campaigns.Add(new Campaign { Name = "Campaign 1", StartDate = DateTimeOffset.MinValue, EndDate = DateTimeOffset.MaxValue });
+            db.CampaignActions.Add(new CampaignAction { CampaignId = 1, CampaignType = "Sample", OptionValue = "Option 1" });
             db.Categories.Add(new Category { Name = "Category 1" });
             db.Categories.Add(new Category { Name = "Category 2" });
             db.Categories.Add(new Category { Name = "Category 3" });
             db.CampaignCategoryRelations.Add(new CampaignCategoryRelation { CampaignId = 1, CategoryId = 1 });
             db.CampaignCategoryRelations.Add(new CampaignCategoryRelation { CampaignId = 1, CategoryId = 2 });
+            db.CampaignProductRelations.Add(new CampaignProductRelation { CampaignId = 1, ProductId = 1 });
+            db.ProductCategoryRelations.Add(new ProductCategoryRelation { ProductId = 1, CategoryId = 1 });
             db.SaveChanges();
         }
     }
