@@ -31,6 +31,8 @@ namespace Sample.EFCore
         {
             var ep = new ODatalizerEndpoint(sample, "Sample", "sample");
 
+            SampleDbInitializer.Initialize(sample);
+
             app.UseODatalizer(ep);
 
             if (env.IsDevelopment())
