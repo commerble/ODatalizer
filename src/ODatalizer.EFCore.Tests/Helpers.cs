@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -15,6 +17,34 @@ namespace ODatalizer.EFCore.Tests
         public static HttpContent JSON(object o)
         {
             return new StringContent(JsonConvert.SerializeObject(o), Encoding.UTF8, "application/json");
+        }
+
+        private static readonly NameValueHeaderValue _responseMsgType = new NameValueHeaderValue("msgtype", "response");
+        public static async Task<HttpResponseMessage[]> ParseMultipartMixedAsync(HttpResponseMessage response) 
+            => await ParseMultipartMixedAsync(await response.Content.ReadAsMultipartAsync());
+        public static async Task<HttpResponseMessage[]> ParseMultipartMixedAsync(MultipartMemoryStreamProvider multipart)
+        {
+            
+            var result = new List<HttpResponseMessage>();
+            foreach (var content in multipart.Contents)
+            {
+                if (content.Headers.ContentType.MediaType == "application/http")
+                {
+                    if (!content.Headers.ContentType.Parameters.Contains(_responseMsgType))
+                        content.Headers.ContentType.Parameters.Add(_responseMsgType);
+
+                    var part = await content.ReadAsHttpResponseMessageAsync();
+
+                    result.Add(part);
+                }
+                else if (content.IsMimeMultipartContent())
+                {
+                    var children = await content.ReadAsMultipartAsync();
+
+                    result.AddRange(await ParseMultipartMixedAsync(children));
+                }
+            }
+            return result.ToArray();
         }
     }
 
