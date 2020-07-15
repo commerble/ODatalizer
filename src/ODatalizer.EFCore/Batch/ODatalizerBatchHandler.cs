@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OData;
 using System;
 using System.Collections.Generic;
@@ -412,9 +413,23 @@ namespace ODatalizer.EFCore.Batch
 
             HttpResponse response = request.HttpContext.Response;
 
-            StringValues acceptHeader = request.Headers.GetCommaSeparatedValues("Accept");
+            IEnumerable<MediaTypeHeaderValue> acceptHeaders = MediaTypeHeaderValue.ParseList(request.Headers.GetCommaSeparatedValues("Accept"));
             string responseContentType = null;
-            if (StringValues.IsNullOrEmpty(acceptHeader))
+
+            foreach (var acceptHeader in acceptHeaders.OrderByDescending(h => h.Quality))
+            {
+                if (acceptHeader.MediaType.Equals(BatchMediaTypeMime, StringComparison.OrdinalIgnoreCase))
+                {
+                    responseContentType = String.Format(CultureInfo.InvariantCulture, "multipart/mixed;boundary=batchresponse_{0}", Guid.NewGuid());
+                    break;
+                }
+                else if (acceptHeader.MediaType.Equals(BatchMediaTypeJson, StringComparison.OrdinalIgnoreCase))
+                {
+                    responseContentType = BatchMediaTypeJson;
+                    break;
+                }
+            }
+            if (responseContentType == null)
             {
                 // In absence of accept, if request was JSON then default response to be JSON.
                 // Note that, if responseContentType is not set, then it will default to multipart/mixed
@@ -424,14 +439,6 @@ namespace ODatalizer.EFCore.Batch
                 {
                     responseContentType = BatchMediaTypeJson;
                 }
-            }
-            else if (acceptHeader.Any(h => h.Equals(BatchMediaTypeMime, StringComparison.OrdinalIgnoreCase)))
-            {
-                responseContentType = String.Format(CultureInfo.InvariantCulture, "multipart/mixed;boundary=batchresponse_{0}", Guid.NewGuid());
-            }
-            else if (acceptHeader.Any(h => h.IndexOf(BatchMediaTypeJson, StringComparison.OrdinalIgnoreCase) > -1))
-            {
-                responseContentType = BatchMediaTypeJson;
             }
 
             response.StatusCode = (int)HttpStatusCode.OK;
