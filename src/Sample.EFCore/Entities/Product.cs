@@ -10,8 +10,8 @@ namespace Sample.EFCore.Entities
         public int SalesPatternId { get; set; }
         public virtual SalesPattern SalesPattern { get; set; }
         public virtual SalesProduct SalesProduct { get; set; }
-        public virtual ICollection<ProductCategoryRelation> CategoryRelations { get; set; }
-        public virtual ICollection<CampaignProductRelation> CampaignRelations { get; set;  }
+        public virtual ICollection<ProductCategoryRelation> CategoryRelations { get; set; } = new List<ProductCategoryRelation>();
+        public virtual ICollection<CampaignProductRelation> CampaignRelations { get; set; } = new List<CampaignProductRelation>();
 
         public virtual ICollection<Category> Categories { get; set; }
         public virtual ICollection<Campaign> Campaigns { get; set; }

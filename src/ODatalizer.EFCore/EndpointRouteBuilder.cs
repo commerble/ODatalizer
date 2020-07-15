@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Routing;
+using ODatalizer.EFCore.Batch;
 
 namespace ODatalizer.EFCore
 {
@@ -10,7 +11,7 @@ namespace ODatalizer.EFCore
             builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count().SkipToken();
             foreach (var ep in endpoints)
             {
-                builder.MapODataRoute(ep.RouteName, ep.RoutePrefix, ep.EdmModel);
+                builder.MapODataRoute(ep.RouteName, ep.RoutePrefix, ep.EdmModel, new ODatalizerBatchHandler());
             }
         }
     }
