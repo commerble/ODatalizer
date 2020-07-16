@@ -21,10 +21,9 @@ namespace ODatalizer.EFCore.Tests
 
         private static readonly NameValueHeaderValue _responseMsgType = new NameValueHeaderValue("msgtype", "response");
         public static async Task<HttpResponseMessage[]> ParseMultipartMixedAsync(HttpResponseMessage response) 
-            => await ParseMultipartMixedAsync(await response.Content.ReadAsMultipartAsync());
+            => response.Content.IsMimeMultipartContent() ? await ParseMultipartMixedAsync(await response.Content.ReadAsMultipartAsync()) : new[] { response };
         public static async Task<HttpResponseMessage[]> ParseMultipartMixedAsync(MultipartMemoryStreamProvider multipart)
         {
-            
             var result = new List<HttpResponseMessage>();
             foreach (var content in multipart.Contents)
             {
