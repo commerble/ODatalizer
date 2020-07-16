@@ -58,15 +58,18 @@ namespace ODatalizer.EFCore.Builders
                 throw new InvalidOperationException("Cannot compile controller code.");
             }
 
+            var tmpPath = Path.GetTempFileName();
+            File.WriteAllBytes(tmpPath, ms.ToArray());
+            
+
             try
             {
-                var file = File.Open(dllPath, FileMode.CreateNew);
-                ms.CopyTo(file);
+                File.Move(tmpPath, dllPath);
             }
-            catch(IOException)
+            catch(IOException ex)
             {
-                if (File.Exists(dllPath))
-                    return Assembly.LoadFrom(dllPath);
+                if (File.Exists(dllPath) == false)
+                    throw ex;
             }
 
             return Assembly.LoadFrom(dllPath);
