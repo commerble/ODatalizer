@@ -2,18 +2,19 @@
 
 The simplest implementation of OData server.
 
-## Install
-
-    $ dotnet add package ODatalizer.EFCore
-    PS> Install-Package  ODatalizer.EFCore
-
-
 ## Consepts
 
 * Simple setup
 * Can use even if dynamic load DbContext assembly
 
-## Usage
+## Entitfy Framework Core 3.x
+
+### Install
+
+    $ dotnet add package ODatalizer.EFCore
+    PS> Install-Package  ODatalizer.EFCore
+
+### Usage
 
 ```cs:Startup.cs
 public void ConfigureServices(IServiceCollection services)
@@ -46,3 +47,39 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDb
     });
 }
 ```
+
+### Many to Many
+
+Entity Framework Core 3.x has not many to many relatioship feature. If you use it, you create custom controller. 
+Please check [src/Sample.EFCore/Controllers/M2MController.cs](https://github.com/commerble/ODatalizer/blob/master/src/Sample.EFCore/Controllers/M2MController.cs)
+
+And, you add dummy properties to entity for EDM.
+
+```
+public class Product
+{
+    public long Id { get; set; }
+    public string Name { get; set; }
+
+    ...
+
+    // Dummy props for m2m
+    // They need to setup ignore for DbContext Model
+    // protected override void OnModelCreating(ModelBuilder modelBuilder)
+    // {
+    //     ...
+    //     modelBuilder.Entity<Product>().Ignore(o => o.Categories);
+    //
+    //     modelBuilder.Entity<Product>().Ignore(o => o.Campaigns);
+    //     ...
+    // }
+    public virtual ICollection<Category> Categories { get; set; }
+    public virtual ICollection<Campaign> Campaigns { get; set; }
+}
+```
+
+## Entity Framework 6
+
+### Install
+
+### Usage
