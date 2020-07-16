@@ -85,7 +85,7 @@ namespace ODatalizer.EFCore.Batch
                     AddLocationHeaderToMapping(context.Response, contentIdToLocationMapping, contentId);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Unlike AspNet, the exception handling is (by default) upstream of this middleware
                 // so we need to trap exceptions on our own. This code is similar to the
