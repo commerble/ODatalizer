@@ -68,13 +68,13 @@ public class Product
     // protected override void OnModelCreating(ModelBuilder modelBuilder)
     // {
     //     ...
+    //
     //     modelBuilder.Entity<Product>().Ignore(o => o.Categories);
     //
-    //     modelBuilder.Entity<Product>().Ignore(o => o.Campaigns);
     //     ...
     // }
     public virtual ICollection<Category> Categories { get; set; }
-    public virtual ICollection<Campaign> Campaigns { get; set; }
+    ...
 }
 ```
 
