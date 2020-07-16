@@ -96,8 +96,11 @@ namespace ODatalizer.EFCore.Tests
             //Assert.Equal((int)salesPattern.Id, (int)product.SalesPatternId);
 
             var binary = await response.Content.ReadAsByteArrayAsync();
+            var hexdump = Helpers.HexDump(binary);
 
-            _output.WriteLine(Helpers.HexDump(binary));
+            _output.WriteLine(hexdump);
+            Console.WriteLine(hexdump);
+            System.Diagnostics.Debug.WriteLine(hexdump);
         }
     }
 }
