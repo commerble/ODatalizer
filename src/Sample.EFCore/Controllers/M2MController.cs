@@ -9,9 +9,6 @@ using System.Threading.Tasks;
 using ODatalizer.EFCore;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OData.UriParser;
-using ODataPath = Microsoft.AspNet.OData.Routing.ODataPath;
-using Microsoft.OData.Edm;
 
 namespace Sample.EFCore.Controllers
 {
