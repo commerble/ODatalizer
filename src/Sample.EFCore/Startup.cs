@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,9 @@ namespace Sample.EFCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<SampleDbContext>(opt => opt.UseInMemoryDatabase("sample").UseLazyLoadingProxies());
+            var connection = new SqliteConnection("datasource=:memory:");
+            connection.Open();
+            services.AddDbContext<SampleDbContext>(opt => opt.UseSqlite(connection).UseLazyLoadingProxies());
             services.AddODatalizer();
             services.AddControllers();
         }
