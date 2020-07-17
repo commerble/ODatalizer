@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +25,10 @@ namespace Sample.EFCore
         {
             var connection = new SqliteConnection("datasource=:memory:");
             connection.Open();
-            services.AddDbContext<SampleDbContext>(opt => opt.UseSqlite(connection).UseLazyLoadingProxies());
+            services.AddDbContext<SampleDbContext>(opt => 
+                 opt.UseSqlite(connection)
+                    .UseLazyLoadingProxies()
+                    .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
             services.AddODatalizer();
             services.AddControllers();
         }

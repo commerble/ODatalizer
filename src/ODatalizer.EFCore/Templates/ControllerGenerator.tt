@@ -88,8 +88,6 @@ namespace <#= Namespace #>
             if (!ModelState.IsValid)
                 return BadRequest(entity);
 
-            //using var tran = _db.Database.BeginTransaction();
-
             var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (original == null)
@@ -103,15 +101,12 @@ namespace <#= Namespace #>
 
             await _db.SaveChangesAsync();
 
-            //tran.Commit();
-
             return NoContent();
         }
 
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Patch(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
         {
-            //using var tran = _db.Database.BeginTransaction();
             var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (original == null)
@@ -121,16 +116,12 @@ namespace <#= Namespace #>
 
             await _db.SaveChangesAsync();
 
-            //tran.Commit();
-
             return NoContent();
         }
 
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Delete(<#= keysTypeNameComma #>)
         {
-            //using var tran = _db.Database.BeginTransaction();
-         
             var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (entity == null)
@@ -139,8 +130,6 @@ namespace <#= Namespace #>
             _db.<#= entitySetName #>.Remove(entity);
 
             await _db.SaveChangesAsync();
-
-            //tran.Commit();
 
             return NoContent();
         }

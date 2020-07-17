@@ -18,11 +18,27 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace ODatalizer.EFCore.Batch
 {
     public class ODatalizerBatchHandler : DefaultODataBatchHandler
     {
+        public override async Task<IList<ODataBatchResponseItem>> ExecuteRequestMessagesAsync(IEnumerable<ODataBatchRequestItem> requests, RequestDelegate handler)
+        {
+            var tran = new TransactionScope(TransactionScopeOption.Required, new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }, TransactionScopeAsyncFlowOption.Enabled);
+
+            var responses = await base.ExecuteRequestMessagesAsync(requests, handler);
+
+            if (responses.All(r => ((ChangeSetResponseItem)r).Contexts.All(c => c.Response.IsSuccessStatusCode())))
+            {
+                tran.Complete();
+            }
+
+            tran.Dispose();
+
+            return responses;
+        }
         public override async Task<IList<ODataBatchRequestItem>> ParseBatchRequestsAsync(HttpContext context)
         {
             if (context == null)
@@ -78,7 +94,7 @@ namespace ODatalizer.EFCore.Batch
             if (reader.State != ODataBatchReaderState.ChangesetStart)
             {
                 throw new InvalidOperationException(reader.State.ToString() + ODataBatchReaderState.ChangesetStart.ToString());
-            }
+            } 
 
             Guid changeSetId = Guid.NewGuid();
             List<HttpContext> contexts = new List<HttpContext>();
