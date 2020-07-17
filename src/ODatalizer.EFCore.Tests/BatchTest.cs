@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,9 +33,11 @@ namespace ODatalizer.EFCore.Tests
             _output = output;
         }
 
-        [Fact(DisplayName = "Batch"), TestPriority(0)]
+        [SkippableFact(DisplayName = "Batch"), TestPriority(0)]
         public async Task Batch()
         {
+            Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+
             var batch = new MultipartContent("mixed", "batch" + Guid.NewGuid());
             var changeset = new MultipartContent("mixed", "changeset" + Guid.NewGuid());
 
@@ -80,27 +83,20 @@ namespace ODatalizer.EFCore.Tests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("multipart/mixed", response.Content.Headers.ContentType.MediaType);
 
-            //var parts = await Helpers.ParseMultipartMixedAsync(response);
+            var parts = await Helpers.ParseMultipartMixedAsync(response);
 
-            //Assert.Equal(2, parts.Length);
+            Assert.Equal(2, parts.Length);
 
-            //Assert.Equal(HttpStatusCode.Created, parts[0].StatusCode);
-            //var salesPattern = await parts[0].Content.ReadAsAsync<dynamic>();
-            //Assert.True((int)salesPattern.Id > 0);
-            //Assert.Equal("Round", (string)salesPattern.TaxRoundMode);
+            Assert.Equal(HttpStatusCode.Created, parts[0].StatusCode);
+            var salesPattern = await parts[0].Content.ReadAsAsync<dynamic>();
+            Assert.True((int)salesPattern.Id > 0);
+            Assert.Equal("Round", (string)salesPattern.TaxRoundMode);
 
-            //Assert.Equal(HttpStatusCode.Created, parts[1].StatusCode);
-            //var product = await parts[1].Content.ReadAsAsync<dynamic>();
-            //Assert.True((long)product.Id > 0);
-            //Assert.Equal("Sample Batch", (string)product.Name);
-            //Assert.Equal((int)salesPattern.Id, (int)product.SalesPatternId);
-
-            var binary = await response.Content.ReadAsByteArrayAsync();
-            var hexdump = Helpers.HexDump(binary);
-
-            _output.WriteLine(hexdump);
-            Console.WriteLine(hexdump);
-            System.Diagnostics.Debug.WriteLine(hexdump);
+            Assert.Equal(HttpStatusCode.Created, parts[1].StatusCode);
+            var product = await parts[1].Content.ReadAsAsync<dynamic>();
+            Assert.True((long)product.Id > 0);
+            Assert.Equal("Sample Batch", (string)product.Name);
+            Assert.Equal((int)salesPattern.Id, (int)product.SalesPatternId);
         }
     }
 }
