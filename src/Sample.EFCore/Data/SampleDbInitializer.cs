@@ -7,6 +7,7 @@ namespace Sample.EFCore.Data
     {
         public static void Initialize(SampleDbContext db)
         {
+            db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
             db.SalesPatterns.Add(new SalesPattern { TaxRoundMode = TaxRoundMode.Round, TaxRate = 0.1m });
             db.SaveChanges();
