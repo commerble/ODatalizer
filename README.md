@@ -11,8 +11,7 @@ The simplest implementation of OData server.
 
 ### Install
 
-    $ dotnet add package ODatalizer.EFCore
-    PS> Install-Package  ODatalizer.EFCore
+    $ dotnet add package ODatalizer.EFCore --version 3.*
 
 ### Usage
 
