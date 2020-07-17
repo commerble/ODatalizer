@@ -10,6 +10,8 @@ namespace Sample.EFCore.Data
         {
         }
 
+        public string NotDbSetProp { get; set; }
+
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<SalesPattern> SalesPatterns { get; set; }

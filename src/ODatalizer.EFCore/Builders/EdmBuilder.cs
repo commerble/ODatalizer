@@ -12,7 +12,8 @@ namespace ODatalizer.EFCore.Builders
         {
             var builder = new ODataConventionModelBuilder();
 
-            var dbSets = db.GetType().GetProperties();
+            var dbSetType = typeof(DbSet<>);
+            var dbSets = db.GetType().GetProperties().Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == dbSetType).ToArray();
             var entityTypes = db.Model.GetEntityTypes();
 
             // Add all Enums
