@@ -19,7 +19,11 @@ The simplest implementation of OData server.
 public void ConfigureServices(IServiceCollection services)
 {
     // add DbContext and use lazy loading proxies.
-    services.AddDbContext<SampleDbContext>(opt => opt.UseLazyLoadingProxies());
+    services.AddDbContext<SampleDbContext>(opt => 
+        opts
+            .UseLazyLoadingProxies()
+            // If your db provider does not suppot AmbientTransaction, ignore the warning.
+            .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
 
     // add ODatalizer services
     services.AddODatalizer();
