@@ -41,14 +41,11 @@ namespace Sample.EFCore.Controllers
             return Ok(entity);
         }
 
+        [EnableQueryRef()]
         [ODataRoute("Products({ProductId})/Categories/$ref", RouteName = RouteName)]
-        public async Task<IActionResult> GetProductCategoryRefs(long ProductId)
+        public IActionResult GetProductCategoryRefs(long ProductId)
         {
-            var relations = await _db.ProductCategoryRelations.Where(r => r.ProductId == ProductId).ToArrayAsync();
-
-            var uris = Request.ResolveResourceUris("Categories", relations.Select(r => KeyValuePair.Create("Id", (object)r.CategoryId)));
-
-            return Ok(uris);
+            return Ok(_db.ProductCategoryRelations.Where(r => r.ProductId == ProductId).Select(r => r.Category));
         }
 
         [ODataRoute("Products({ProductId})/Categories/$ref", RouteName = RouteName)]
