@@ -1,14 +1,12 @@
-﻿using Microsoft.AspNet.OData.Routing;
-using Microsoft.AspNet.OData.Extensions;
+﻿using Microsoft.AspNet.OData.Extensions;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.OData.UriParser;
-using Microsoft.AspNetCore.Mvc.Routing;
 using System;
 using System.Linq;
 using Microsoft.OData.Edm;
 
-namespace ODatalizer.EFCore
+namespace ODatalizer
 {
     public static class HttpRequestMessageExtensions
     {
@@ -32,6 +30,21 @@ namespace ODatalizer.EFCore
             {
                 yield return keySegment.Keys.ToDictionary(kv => kv.Key, kv => kv.Value);
             }
+        }
+
+        public static (string, IReadOnlyDictionary<string, object>) GetEntitySetAndKeysFromUri(this HttpRequest request, Uri uri)
+        {
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+
+            var serviceRoot = GetServiceRoot(request);
+            var serviceRootUri = serviceRoot.EndsWith("/") ? new Uri(serviceRoot) : new Uri(serviceRoot + "/");
+            var pathHandler = request.GetPathHandler();
+            var odataPath = pathHandler.Parse(serviceRoot, serviceRootUri.MakeRelativeUri(uri).ToString(), request.GetRequestContainer());
+            var entitySetSegment = odataPath.Segments.OfType<EntitySetSegment>().First();
+            var keySegment = odataPath.Segments.OfType<KeySegment>().First();
+
+            return (entitySetSegment.EntitySet.Name, keySegment.Keys.ToDictionary(kv => kv.Key, kv => kv.Value));
         }
 
         public static IEnumerable<Uri> ResolveResourceUris(this HttpRequest request, string entitySetName, IEnumerable<KeyValuePair<string, object>> keys)

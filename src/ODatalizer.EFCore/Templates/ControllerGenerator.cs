@@ -13,7 +13,7 @@ namespace ODatalizer.EFCore.Templates
     using System.Text;
     using System.Collections.Generic;
     using Microsoft.OData.Edm;
-    using ODatalizer.EFCore.Extensions;
+    using ODatalizer.Extensions;
     using System;
     
     /// <summary>

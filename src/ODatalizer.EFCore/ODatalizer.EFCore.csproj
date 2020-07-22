@@ -27,6 +27,7 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </None>
+    <ProjectReference Include="..\ODatalizer\ODatalizer.csproj" />
     <None Update="Templates\ControllerGenerator.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ControllerGenerator.cs</LastGenOutput>

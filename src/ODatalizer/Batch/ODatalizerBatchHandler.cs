@@ -20,7 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace ODatalizer.EFCore.Batch
+namespace ODatalizer.Batch
 {
     public class ODatalizerBatchHandler : DefaultODataBatchHandler
     {
@@ -30,7 +30,14 @@ namespace ODatalizer.EFCore.Batch
 
             var responses = await base.ExecuteRequestMessagesAsync(requests, handler);
 
-            if (responses.All(r => ((ChangeSetResponseItem)r).Contexts.All(c => c.Response.IsSuccessStatusCode())))
+            if (responses.All(r => {
+                if (r is ChangeSetResponseItem c)
+                    return c.Contexts.All(c => c.Response.IsSuccessStatusCode());
+                if (r is OperationResponseItem o)
+                    return o.Context.Response.IsSuccessStatusCode();
+
+                return false;
+            }))
             {
                 tran.Complete();
             }

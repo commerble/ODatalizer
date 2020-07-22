@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Logging;
-using ODatalizer.EFCore.Extensions;
 using ODatalizer.EFCore.Templates;
+using ODatalizer.Extensions;
 using System;
 using System.IO;
 using System.Linq;

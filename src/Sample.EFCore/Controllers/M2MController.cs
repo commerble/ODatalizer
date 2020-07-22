@@ -3,12 +3,11 @@ using Microsoft.AspNet.OData.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ODatalizer.EFCore;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using ODatalizer;
 
 namespace Sample.EFCore.Controllers
 {

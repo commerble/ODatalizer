@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ODatalizer.EFCore.Batch
+namespace ODatalizer.Batch
 {
     public class ODatalizerBatchChangeSetRequestItem : ChangeSetRequestItem
     {

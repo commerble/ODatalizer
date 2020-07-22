@@ -8,9 +8,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace ODatalizer.EFCore
+namespace ODatalizer
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
     public class EnableQueryRefAttribute : EnableQueryAttribute
@@ -45,7 +44,8 @@ namespace ODatalizer.EFCore
                         var firstType = first.GetType();
 
                         var resolve = _cachedUriResolvers.GetOrAdd(firstType, type => {
-                            var clrType = firstType.FullName.StartsWith("Castle.Proxies.") ? type.BaseType : type;
+                            var clrType = type.FullName.StartsWith("Castle.Proxies.") ? type.BaseType : 
+                                          type.FullName.StartsWith("System.Data.Entity.DynamicProxies.") ? type.BaseType : type;
                             var model = actionExecutedContext.HttpContext.Request.GetModel();
 
                             var edmType = model.FindDeclaredType(clrType.FullName) as EdmEntityType;

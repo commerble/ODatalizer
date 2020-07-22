@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Routing;
-using ODatalizer.EFCore.Batch;
+using ODatalizer.Batch;
 
 namespace ODatalizer.EFCore
 {
