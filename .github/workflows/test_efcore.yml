@@ -11,7 +11,7 @@ on:
       - 'src/ODatalizer.EFCore/**'
       - 'src/ODatalizer.EFCore.Tests/**'
       - 'src/ODatalizer.EFCore.sln'
-      - '.github/workflows/test.yml'
+      - '.github/workflows/test_efcore.yml'
   pull_request:
     branches: 
       - '**'
