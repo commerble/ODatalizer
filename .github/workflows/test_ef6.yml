@@ -1,4 +1,4 @@
-name: test
+name: test EF6
 
 on: 
   push:
@@ -7,7 +7,10 @@ on:
     tags-ignore:
       - '*.*'
     paths:
-      - 'src/**'
+      - 'src/ODatalizer/**'
+      - 'src/ODatalizer.EF6/**'
+      - 'src/ODatalizer.EF6.Tests/**'
+      - 'src/ODatalizer.EF6.sln'
       - '.github/workflows/test.yml'
   pull_request:
     branches: 
@@ -15,7 +18,10 @@ on:
     tags-ignore:
       - '*.*'
     paths:
-      - 'src/**'
+      - 'src/ODatalizer/**'
+      - 'src/ODatalizer.EF6/**'
+      - 'src/ODatalizer.EF6.Tests/**'
+      - 'src/ODatalizer.EF6.sln'
       - '.github/workflows/test.yml'
 
 jobs:
@@ -29,15 +35,4 @@ jobs:
         dotnet-version: 3.1.x
     - name: Run all tests
       working-directory: ./src/
-      run: dotnet test ODatalizer.EFCore.sln
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.x
-    - name: Run all tests
-      working-directory: ./src/
-      run: dotnet test ODatalizer.EFCore.sln
+      run: dotnet test ODatalizer.EF6.sln

@@ -1,4 +1,4 @@
-name: release
+name: release EFCore
 
 on:
   release:
@@ -7,6 +7,7 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
+    if: contains(github.event.release.tag_name, 'efc.') == true
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -19,10 +20,13 @@ jobs:
     - name: Replace version
       working-directory: ./src/ODatalizer.EFCore
       shell: bash
-      run: sed -i -e "s|<Version>1.0.0</Version>|<Version>${{ github.event.release.tag_name }}</Version>|g" ./ODatalizer.EFCore.csproj
+      run: |
+        tag_name = echo '${{ github.event.release.tag_name }}' | sed -e "s|efc.||g"
+        sed -i -e "s|<Version>1.0.0</Version>|<Version>$tag_name</Version>|g" ./ODatalizer.EFCore.csproj
+        cat ./ODatalizer.EFCore.csproj
     - name: Build release
       working-directory: ./src/ODatalizer.EFCore
       run: dotnet pack -c Release
-    - name: Publish to NuGet.org
-      working-directory: ./src/ODatalizer.EFCore/bin/Release
-      run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_TOKEN }}
+    # - name: Publish to NuGet.org
+    #   working-directory: ./src/ODatalizer.EFCore/bin/Release
+    #   run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_TOKEN }}
