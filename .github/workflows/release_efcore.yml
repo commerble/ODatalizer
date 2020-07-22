@@ -21,7 +21,7 @@ jobs:
       working-directory: ./src/ODatalizer.EFCore
       shell: bash
       run: |
-        tag_name = echo '${{ github.event.release.tag_name }}' | sed -e "s|efc.||g"
+        tag_name=$(echo '${{ github.event.release.tag_name }}' | sed -e "s|efc.||g")
         sed -i -e "s|<Version>1.0.0</Version>|<Version>$tag_name</Version>|g" ./ODatalizer.EFCore.csproj
         cat ./ODatalizer.EFCore.csproj
     - name: Build release
