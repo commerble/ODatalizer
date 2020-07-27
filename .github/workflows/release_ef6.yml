@@ -27,6 +27,6 @@ jobs:
     - name: Build release
       working-directory: ./src/ODatalizer.EF6
       run: dotnet pack -c Release
-    # - name: Publish to NuGet.org
-    #   working-directory: ./src/ODatalizer.EF6/bin/Release
-    #   run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_TOKEN }}
+    - name: Publish to NuGet.org
+      working-directory: ./src/ODatalizer.EF6/bin/Release
+      run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_TOKEN }}
