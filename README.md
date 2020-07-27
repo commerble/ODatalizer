@@ -85,4 +85,40 @@ public class Product
 
 ### Install
 
+    $ dotnet add package ODatalizer.EF6
+
 ### Usage
+
+```cs:Startup.cs
+public void ConfigureServices(IServiceCollection services)
+{
+    ...
+    
+    // add DbContext
+    services.AddScoped(sp => new SampleDbContext(connection));
+
+    // add ODatalizer services
+    services.AddODatalizer();
+
+    ...
+}
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
+{
+    // create ODatalizer ep metadata
+    var ep = new ODatalizerEndpoint(db:sample, 
+                                    routeName: "Sample", 
+                                    routePrefix: "sample");
+
+    // load ODatalizer controllers
+    app.UseODatalizer(ep);
+
+    ...
+
+    app.UseEndpoints(endpoints =>
+    {
+        // map ODatalizer routes
+        endpoints.MapODatalizer(ep);
+        ...
+    });
+}
+```
