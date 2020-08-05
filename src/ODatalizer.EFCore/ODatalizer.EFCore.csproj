@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.OData" Version="7.4.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.6.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.6" />
@@ -22,11 +23,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\ODatalizer\Batch\ODatalizerBatchChangeSetRequestItem.cs" Link="Batch\ODatalizerBatchChangeSetRequestItem.cs" />
+    <Compile Include="..\ODatalizer\Batch\ODatalizerBatchHandler.cs" Link="Batch\ODatalizerBatchHandler.cs" />
+    <Compile Include="..\ODatalizer\Extensions\StringExtensions.cs" Link="Extensions\StringExtensions.cs"/>
+    <Compile Include="..\ODatalizer\EnableQueryRefAttribute.cs" Link="EnableQueryRefAttribute.cs" />
+    <Compile Include="..\ODatalizer\ODatalizerHelpers.cs" Link="ODatalizerHelpers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Templates\ControllerGenerator.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </None>
-    <ProjectReference Include="..\ODatalizer\ODatalizer.csproj" />
     <None Update="Templates\ControllerGenerator.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ControllerGenerator.cs</LastGenOutput>
