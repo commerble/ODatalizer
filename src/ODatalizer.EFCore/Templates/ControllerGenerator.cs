@@ -49,6 +49,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
