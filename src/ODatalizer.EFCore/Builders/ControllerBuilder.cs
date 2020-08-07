@@ -25,7 +25,7 @@ namespace ODatalizer.EFCore.Builders
         {
             var generator = ControllerGenerator.Create(ep);
             var code = generator.TransformText();
-            _logger.LogInformation(ControllerCodeGenerated, code);
+            _logger.LogDebug(ControllerCodeGenerated, code);
             return Build(code, generator.Namespace);
         }
         public Assembly Build(string code, string @namespace)
