@@ -53,33 +53,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDb
 
 ### Many to Many
 
-Entity Framework Core 3.x has not many to many relatioship feature. If you use it, you create custom controller. 
-Please check [src/Sample.EFCore/Controllers/M2MController.cs](https://github.com/commerble/ODatalizer/blob/master/src/Sample.EFCore/Controllers/M2MController.cs)
-
-And, you add dummy properties to entity for EDM.
-
-```
-public class Product
-{
-    public long Id { get; set; }
-    public string Name { get; set; }
-
-    ...
-
-    // Dummy props for m2m
-    // They need to setup ignore for DbContext Model
-    // protected override void OnModelCreating(ModelBuilder modelBuilder)
-    // {
-    //     ...
-    //
-    //     modelBuilder.Entity<Product>().Ignore(o => o.Categories);
-    //
-    //     ...
-    // }
-    public virtual ICollection<Category> Categories { get; set; }
-    ...
-}
-```
+Entity Framework Core 3.x has not many to many relatioship feature.
 
 ## Entity Framework 6
 
