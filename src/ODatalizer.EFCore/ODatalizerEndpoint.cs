@@ -11,14 +11,14 @@ namespace ODatalizer.EFCore
         public string RoutePrefix { get; }
         public DbContext DbContext { get; }
         public IEdmModel EdmModel { get; }
-        public int? MaxNestNavigations { get; }
-        public ODatalizerEndpoint(DbContext db, string routeName = null, string routePrefix = null, int? maxNavigations = null, string @namespace = null)
+        public string ODatalizerController { get; set; }
+        public ODatalizerEndpoint(DbContext db, string routeName = null, string routePrefix = null, string controller = null, string @namespace = null)
         {
             DbContext = db;
             Namespace = @namespace;
+            ODatalizerController = controller;
             RouteName = routeName;
             RoutePrefix = routePrefix;
-            MaxNestNavigations = maxNavigations;
             EdmModel = EdmBuilder.Build(db);
         }
     }
