@@ -55,6 +55,28 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDb
 
 Entity Framework Core 3.x has not many to many relatioship feature.
 
+### Navigation Resource Path
+When you need to read and write all accesses, custom dynamic controller inherits `ODatalizerController<TDbContext>`.
+
+```cs:SampleController
+public class SampleController : ODatalizerController<SampleDbContext>
+{
+    public SampleController(IServiceProvider sp) : base(sp)
+    {
+    }
+}
+```
+
+And you set the controller name to endponto settings.
+
+```cs:Startup.cs
+// create ODatalizer ep metadata
+var ep = new ODatalizerEndpoint(db:sample, 
+                                routeName: "Sample", 
+                                routePrefix: "sample",
+                                controller: nameof(SampleController));
+```
+
 ## Entity Framework 6
 
 ### Install
