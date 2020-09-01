@@ -36,7 +36,6 @@ namespace ODatalizer.EFCore.Templates
             EdmModel = ep.EdmModel;
             DbContext = ep.DbContext;
             DbContextTypeName = ep.DbContext.GetType().FullName;
-            MaxNestNavigations = ep.MaxNestNavigations;
             RouteName = ep.RouteName;
             _namespace = ep.Namespace;
         }
@@ -48,14 +47,20 @@ namespace ODatalizer.EFCore.Templates
 
         private IDictionary<string, string> _typeMap = new Dictionary<string, string>
         {
+            ["Edm.Binary"] = "byte[]",
             ["Edm.Boolean"] = "bool",
             ["Edm.Byte"] = "byte",
+            ["Edm.SByte"] = "sbyte",
+            ["Edm.Int16"] = "short",
             ["Edm.Int32"] = "int",
             ["Edm.Int64"] = "long",
             ["Edm.Single"] = "float",
             ["Edm.Double"] = "double",
+            ["Edm.Decimal"] = "decimal",
             ["Edm.Date"] = "DateTimeOffset",
             ["Edm.DateTimeOffset"] = "DateTimeOffset",
+            ["Edm.Time"] = "TimeSpan",
+            ["Edm.Guid"] = "Guid",
             ["Edm.String"] = "string",
         };
 
@@ -69,31 +74,6 @@ namespace ODatalizer.EFCore.Templates
                 return edm;
 
             throw new NotImplementedException();
-        }
-
-        public bool IsIgnore(IEdmNavigationProperty property)
-        {
-            var entityType = DbContext.Model.FindEntityType(property.DeclaringEntityType().FullName());
-            var nav = entityType.FindNavigation(property.Name);
-            return nav == null;
-        }
-
-        class NavigationInfo
-        {
-            public IEnumerable<IEdmNavigationProperty> Path;
-        }
-
-        class PathSegment
-        {
-            public int Suffix { get; set; }
-            public string Name { get; set; }
-            public string Type { get; set; }
-            public IEnumerable<IEdmStructuralProperty> Keys { get; set; }
-            public string KeysNameComma { get; set;  }
-            public string KeysTypeNameComma { get; set; }
-            public string KeysNameBraceComma { get; set; }
-            public string KeysNameCondition { get; set; }
-            public EdmMultiplicity Multiplicity { get; set; }
         }
     }
 }

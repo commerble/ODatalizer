@@ -15,8 +15,7 @@ namespace ODatalizer.EFCore.Builders
     public class ControllerBuilder
     {
         private readonly ILogger<ControllerBuilder> _logger;
-        private static readonly EventId ControllerCodeGenerated = new EventId(90000, "ControllerCodeGenerated");
-        private static readonly EventId ControllerCodeCompileFaild= new EventId(90001, "ControllerCodeCompileFaild");
+        
         public ControllerBuilder(ILogger<ControllerBuilder> logger)
         {
             _logger = logger;
@@ -25,7 +24,7 @@ namespace ODatalizer.EFCore.Builders
         {
             var generator = ControllerGenerator.Create(ep);
             var code = generator.TransformText();
-            _logger.LogDebug(ControllerCodeGenerated, code);
+            _logger.LogDebug(ODatalizerLogEvents.ControllerCodeGenerated, code);
             return Build(code, generator.Namespace);
         }
         public Assembly Build(string code, string @namespace)
@@ -52,7 +51,7 @@ namespace ODatalizer.EFCore.Builders
                 var failures = result.Diagnostics.Where(diagnostic => diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error);
                 foreach(var failur in failures)
                 {
-                    _logger.LogError(ControllerCodeCompileFaild, $"{failur.Id} - {failur.GetMessage()}");
+                    _logger.LogError(ODatalizerLogEvents.ControllerCodeCompileFaild, $"{failur.Id} - {failur.GetMessage()}");
                 }
 
                 throw new InvalidOperationException("Cannot compile controller code.");
