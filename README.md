@@ -67,7 +67,7 @@ public class SampleController : ODatalizerController<SampleDbContext>
 }
 ```
 
-And you set the controller name to endponto settings.
+And you set the controller name to endpoint settings.
 
 ```cs:Startup.cs
 // create ODatalizer ep metadata
