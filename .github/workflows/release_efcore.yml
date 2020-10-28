@@ -7,7 +7,6 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
-    if: contains(github.event.release.tag_name, 'efc.') == true
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -21,8 +20,7 @@ jobs:
       working-directory: ./src/ODatalizer.EFCore
       shell: bash
       run: |
-        tag_name=$(echo '${{ github.event.release.tag_name }}' | sed -e "s|efc.||g")
-        sed -i -e "s|<Version>1.0.0</Version>|<Version>$tag_name</Version>|g" ./ODatalizer.EFCore.csproj
+        sed -i -e "s|<Version>1.0.0</Version>|<Version>${{ github.event.release.tag_name }}</Version>|g" ./ODatalizer.EFCore.csproj
         cat ./ODatalizer.EFCore.csproj
     - name: Build release
       working-directory: ./src/ODatalizer.EFCore
