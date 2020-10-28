@@ -91,7 +91,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Get(");
+            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> GetOne(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(")\n        {\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));

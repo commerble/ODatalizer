@@ -57,7 +57,7 @@ namespace <#= Namespace #>
 
         [EnableQuery]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
-        public async Task<IActionResult> Get(<#= keysTypeNameComma #>)
+        public async Task<IActionResult> GetOne(<#= keysTypeNameComma #>)
         {
             var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
