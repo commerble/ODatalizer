@@ -1,21 +1,15 @@
 ﻿using Microsoft.AspNet.OData.Batch;
 using Microsoft.AspNet.OData.Extensions;
-using Microsoft.AspNet.OData.Formatter;
 using Microsoft.AspNet.OData.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Net.Http.Headers;
 using Microsoft.OData;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -46,6 +40,7 @@ namespace ODatalizer.Batch
 
             return responses;
         }
+        
         public override async Task<IList<ODataBatchRequestItem>> ParseBatchRequestsAsync(HttpContext context)
         {
             if (context == null)
@@ -73,7 +68,7 @@ namespace ODatalizer.Batch
                         changeSetContext.Request.CopyBatchRequestProperties(request);
                         changeSetContext.Request.DeleteRequestContainer(false);
                     }
-                    requests.Add(new ODatalizerBatchChangeSetRequestItem(changeSetContexts));
+                    requests.Add(new ChangeSetRequestItem(changeSetContexts));
                 }
                 else if (batchReader.State == ODataBatchReaderState.Operation)
                 {
@@ -86,11 +81,7 @@ namespace ODatalizer.Batch
 
             return requests;
         }
-
-        public override Task CreateResponseMessageAsync(IEnumerable<ODataBatchResponseItem> responses, HttpRequest request)
-        {
-            return CreateODataBatchResponseAsync(request, responses, MessageQuotas);
-        }
+        
         public async Task<IList<HttpContext>> ReadChangeSetRequestAsync(ODataBatchReader reader, HttpContext context, Guid batchId, CancellationToken cancellationToken)
         {
             if (reader == null)
@@ -115,7 +106,7 @@ namespace ODatalizer.Batch
 
             return contexts;
         }
-
+        
         private static readonly string[] nonInheritableHeaders = new string[] { "content-length", "content-type" };
         private static readonly string[] nonInheritablePreferences = new string[] { "respond-async", "continue-on-error", "odata.continue-on-error" };
 
@@ -416,63 +407,6 @@ namespace ODatalizer.Batch
             public override void Close()
             {
             }
-        }
-
-        private const string BatchMediaTypeMime = "multipart/mixed";
-        private const string BatchMediaTypeJson = "application/json";
-        private const string Boundary = "boundary";
-
-        static Task CreateODataBatchResponseAsync(HttpRequest request, IEnumerable<ODataBatchResponseItem> responses, ODataMessageQuotas messageQuotas)
-        {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
-
-            ODataVersion odataVersion = ODataVersion.V4;
-
-            IServiceProvider requestContainer = request.GetRequestContainer();
-            ODataMessageWriterSettings writerSettings = requestContainer.GetRequiredService<ODataMessageWriterSettings>();
-            writerSettings.Version = odataVersion;
-            writerSettings.MessageQuotas = messageQuotas;
-
-            HttpResponse response = request.HttpContext.Response;
-
-            IEnumerable<MediaTypeHeaderValue> acceptHeaders = MediaTypeHeaderValue.ParseList(request.Headers.GetCommaSeparatedValues("Accept"));
-            string responseContentType = null;
-
-            foreach (var acceptHeader in acceptHeaders.OrderByDescending(h => h.Quality))
-            {
-                if (acceptHeader.MediaType.Equals(BatchMediaTypeMime, StringComparison.OrdinalIgnoreCase))
-                {
-                    responseContentType = String.Format(CultureInfo.InvariantCulture, "multipart/mixed;boundary=batchresponse_{0}", Guid.NewGuid());
-                    break;
-                }
-                else if (acceptHeader.MediaType.Equals(BatchMediaTypeJson, StringComparison.OrdinalIgnoreCase))
-                {
-                    responseContentType = BatchMediaTypeJson;
-                    break;
-                }
-            }
-            if (responseContentType == null)
-            {
-                // In absence of accept, if request was JSON then default response to be JSON.
-                // Note that, if responseContentType is not set, then it will default to multipart/mixed
-                // when constructing the BatchContent, so we don't need to handle that case here
-                if (!String.IsNullOrEmpty(request.ContentType)
-                && request.ContentType.IndexOf(BatchMediaTypeJson, StringComparison.OrdinalIgnoreCase) > -1)
-                {
-                    responseContentType = BatchMediaTypeJson;
-                }
-            }
-
-            response.StatusCode = (int)HttpStatusCode.OK;
-            ODataBatchContent batchContent = new ODataBatchContent(responses, requestContainer, responseContentType);
-            foreach (var header in batchContent.Headers)
-            {
-                // Copy headers from batch content, overwriting any existing headers.
-                response.Headers[header.Key] = header.Value;
-            }
-
-            return batchContent.SerializeToStreamAsync(response.Body);
         }
     }
 }

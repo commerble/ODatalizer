@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ODatalizer\Batch\ODatalizerBatchChangeSetRequestItem.cs" Link="Batch\ODatalizerBatchChangeSetRequestItem.cs" />
     <Compile Include="..\ODatalizer\Batch\ODatalizerBatchHandler.cs" Link="Batch\ODatalizerBatchHandler.cs" />
     <Compile Include="..\ODatalizer\Extensions\StringExtensions.cs" Link="Extensions\StringExtensions.cs" />
     <Compile Include="..\ODatalizer\EnableQueryRefAttribute.cs" Link="EnableQueryRefAttribute.cs" />
