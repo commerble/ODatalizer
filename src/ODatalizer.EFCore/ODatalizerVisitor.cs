@@ -19,6 +19,7 @@ namespace ODatalizer.EFCore
         private readonly static MethodInfo _count = _queryableStaticsMethods.First(m => m.Name == "Count" && m.GetParameters().Count() == 1);
         private readonly DbContext _db;
         private readonly Type _dbType;
+        private static readonly Type[] _emptyTypes = Array.Empty<Type>();
 
         public ODatalizerVisitor(DbContext db)
         {
@@ -100,7 +101,7 @@ namespace ODatalizer.EFCore
         public Task VisitAsync(EntitySetSegment segment)
         {
             var entityType = _db.Model.FindEntityType(segment.EdmType.AsElementType().FullTypeName()).ClrType;
-            var dbSet = _dbType.GetMethod("Set").MakeGenericMethod(entityType).Invoke(_db, null);
+            var dbSet = _dbType.GetMethod("Set", _emptyTypes).MakeGenericMethod(entityType).Invoke(_db, null);
 
             if (dbSet == null)
             {
