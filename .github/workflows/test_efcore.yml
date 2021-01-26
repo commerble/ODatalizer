@@ -33,6 +33,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.x
+    - name: Clean
+      working-directory: ./src/
+      run: dotnet clean ODatalizer.EFCore.sln --configuration Release && dotnet nuget locals all --clear
     - name: Run all tests
       working-directory: ./src/
       run: dotnet test ODatalizer.EFCore.sln
