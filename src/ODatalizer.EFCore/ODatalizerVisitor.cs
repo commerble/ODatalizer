@@ -17,9 +17,9 @@ namespace ODatalizer.EFCore
         private readonly static MethodInfo _where = _queryableStaticsMethods.First(m => m.Name == "Where" && m.GetParameters().Last().ParameterType.ToString() == "System.Linq.Expressions.Expression`1[System.Func`2[TSource,System.Boolean]]");
         private readonly static MethodInfo _firstOrDefault = _queryableStaticsMethods.First(m => m.Name == "FirstOrDefault" && m.GetParameters().Count() == 1);
         private readonly static MethodInfo _count = _queryableStaticsMethods.First(m => m.Name == "Count" && m.GetParameters().Count() == 1);
+        private readonly static Type[] _emptyTypes = Array.Empty<Type>();
         private readonly DbContext _db;
         private readonly Type _dbType;
-        private static readonly Type[] _emptyTypes = Array.Empty<Type>();
 
         public ODatalizerVisitor(DbContext db)
         {
