@@ -1,12 +1,3 @@
-using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Extensions;
-using Microsoft.AspNet.OData.Formatter.Deserialization;
-using Microsoft.AspNet.OData.Formatter.Serialization;
-using Microsoft.AspNet.OData.Query;
-using Microsoft.AspNet.OData.Query.Expressions;
-using Microsoft.AspNet.OData.Query.Validators;
-using Microsoft.AspNet.OData.Routing;
-using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
@@ -15,13 +6,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OData;
 using ODatalizer.EFCore;
 using Sample.EFCore.Controllers;
 using Sample.EFCore.Data;
-using System;
-using System.Collections.Generic;
-using ServiceLifetime = Microsoft.OData.ServiceLifetime;
 
 namespace Sample.EFCore
 {
