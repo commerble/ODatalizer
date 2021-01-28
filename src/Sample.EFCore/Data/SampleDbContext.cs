@@ -61,11 +61,32 @@ namespace Sample.EFCore.Data
                             .WithOne(o => o.Product)
                             .HasForeignKey<SalesProduct>(o => o.ProductId);
 
+            modelBuilder.Entity<Product>()
+                            .HasMany(o => o.Categories)
+                            .WithMany(o => o.Products)
+                            .UsingEntity<ProductCategoryRelation>(
+                                j => j.HasOne(o => o.Category).WithMany(o => o.ProductRelations),
+                                j => j.HasOne(o => o.Product).WithMany(o => o.CategoryRelations));
+
             modelBuilder.Entity<Campaign>()
                             .HasMany(o => o.Actions)
                             .WithOne(o => o.Campaign)
                             .HasForeignKey(o => o.CampaignId);
 
+            modelBuilder.Entity<Campaign>()
+                            .HasMany(o => o.Products)
+                            .WithMany(o => o.Campaigns)
+                            .UsingEntity<CampaignProductRelation>(
+                                j => j.HasOne(o => o.Product).WithMany(o => o.CampaignRelations),
+                                j => j.HasOne(o => o.Campaign).WithMany(o => o.ProductRelations));
+
+            modelBuilder.Entity<Campaign>()
+                            .HasMany(o => o.Categories)
+                            .WithMany(o => o.Campaigns)
+                            .UsingEntity<CampaignCategoryRelation>(
+                                j => j.HasOne(o => o.Category).WithMany(o => o.CampaignRelations),
+                                j => j.HasOne(o => o.Campaign).WithMany(o => o.CategoryRelations));
+
             modelBuilder.Entity<ProductCategoryRelation>()
                             .HasOne(o => o.Product)
                             .WithMany(o => o.CategoryRelations)
@@ -95,24 +116,6 @@ namespace Sample.EFCore.Data
                             .HasOne(o => o.Campaign)
                             .WithMany(o => o.CategoryRelations)
                             .HasForeignKey(o => o.CampaignId);
-
-            modelBuilder.Entity<Product>()
-                            .Ignore(o => o.Categories);
-
-            modelBuilder.Entity<Product>()
-                            .Ignore(o => o.Campaigns);
-
-            modelBuilder.Entity<Category>()
-                            .Ignore(o => o.Products);
-
-            modelBuilder.Entity<Category>()
-                            .Ignore(o => o.Campaigns);
-
-            modelBuilder.Entity<Campaign>()
-                            .Ignore(o => o.Products);
-
-            modelBuilder.Entity<Campaign>()
-                            .Ignore(o => o.Categories);
 
             base.OnModelCreating(modelBuilder);
         }

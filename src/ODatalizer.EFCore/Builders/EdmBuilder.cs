@@ -26,7 +26,10 @@ namespace ODatalizer.EFCore.Builders
             // Add Entities
             foreach (var entityType in entityTypes)
             {
-                var name = dbSets.First(p => p.PropertyType.GenericTypeArguments.Contains(entityType.ClrType)).Name;
+                var dbSet = dbSets.FirstOrDefault(p => p.PropertyType.GenericTypeArguments.Contains(entityType.ClrType));
+                if (dbSet == null)
+                    continue;
+
                 var type = builder.AddEntityType(entityType.ClrType);
 
                 foreach (var key in entityType.FindPrimaryKey().Properties)
@@ -34,7 +37,7 @@ namespace ODatalizer.EFCore.Builders
                     type.HasKey(key.PropertyInfo);
                 }
 
-                builder.AddEntitySet(name, type);
+                builder.AddEntitySet(dbSet.Name, type);
             }
 
             return builder.GetEdmModel();

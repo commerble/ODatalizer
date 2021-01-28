@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.OData.Edm;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,8 +12,6 @@ namespace ODatalizer
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
     public class EnableQueryRefAttribute : EnableQueryAttribute
     {
-        private static ConcurrentDictionary<Type, Func<ActionExecutedContext, IEnumerable<object>, IEnumerable<Uri>>> _cachedUriResolvers 
-            = new ConcurrentDictionary<Type, Func<ActionExecutedContext, IEnumerable<object>, IEnumerable<Uri>>>();
         public override void OnActionExecuted(ActionExecutedContext actionExecutedContext)
         {
             base.OnActionExecuted(actionExecutedContext);
@@ -43,32 +39,12 @@ namespace ODatalizer
 
                         var firstType = first.GetType();
 
-                        var resolve = _cachedUriResolvers.GetOrAdd(firstType, type => {
-                            var clrType = type.FullName.StartsWith("Castle.Proxies.") ? type.BaseType : 
-                                          type.FullName.StartsWith("System.Data.Entity.DynamicProxies.") ? type.BaseType : type;
-                            var model = actionExecutedContext.HttpContext.Request.GetModel();
-
-                            var edmType = model.FindDeclaredType(clrType.FullName) as EdmEntityType;
-                            if (edmType == null)
-                                return null;
-
-                            var entitySet = model.EntityContainer.Elements.FirstOrDefault(el => el.ContainerElementKind == EdmContainerElementKind.EntitySet && ((EdmEntitySet)el).EntityType() == edmType);
-                            if (entitySet == null)
-                                return null;
-
-                            var keySelectors = edmType.DeclaredKey.Select<IEdmStructuralProperty, Func<object, KeyValuePair<string, object>>>(key =>
-                            {
-                                var propInfo = clrType.GetProperty(key.Name);
-                                return o => KeyValuePair.Create(key.Name, propInfo.GetValue(o));
-                            }).ToList();
-
-                            return (context, values) => context.HttpContext.Request.ResolveResourceUris(entitySet.Name, values.Select(o => keySelectors.Select(f => f(o))));
-                        });
+                        var resolve = actionExecutedContext.HttpContext.Request.GetResourceUriResolver(firstType);
 
                         if (resolve == null)
                             return;
                         
-                        responseContent.Value = resolve(actionExecutedContext, results);
+                        responseContent.Value = resolve(results);
                     }
                 }
             }

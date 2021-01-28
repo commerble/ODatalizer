@@ -134,6 +134,81 @@ namespace <#= Namespace #>
 
             return NoContent();
         }
+
+    <#
+        var suffix = 1;
+        foreach(var bind in entitySet.NavigationPropertyBindings.Where(n => IsSkipNavigation(n)))
+        {
+            var nav = bind.NavigationProperty;
+            var navEntityType = nav.ToEntityType();
+            var navKeys = navEntityType.DeclaredKey;
+
+            var navEntityName = navEntityType.FullTypeName();
+            var navName = nav.Name;
+            var navKeysTypeNameComma = navKeys.Select(key => Type(key.Type) + " " + key.Name + suffix).Join(", ");
+            var navKeysNameComma = navKeys.Select(key => key.Name + suffix).Join(", ");
+            var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + suffix + "}").Join(", ");
+            var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
+    #>
+        [EnableQueryRef]
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref", RouteName = RouteName)]
+        public async Task<IActionResult> Get<#= navName #>Ref(<#= keysTypeNameComma #>)
+        {
+            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+
+            if (entity == null)
+                return NotFound();
+
+            return Ok(entity.<#= navName #>);
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref", RouteName = RouteName)]
+        public async Task<IActionResult> Post<#= navName #>Ref(<#= keysTypeNameComma #>, [FromBody]Uri uri)
+        {
+            var keys = Request.GetKeysFromUri(uri);
+            var key = keys.FirstOrDefault();
+
+            if (key == null)
+                return BadRequest();
+
+            var entity = await _db.Set<<#= navEntityName #>>().FindAsync(key.Values.ToArray());
+
+            if (entity == null)
+                return NotFound();
+
+            var root = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+
+            if (root == null)
+                return NotFound();
+
+            root.<#= navName #>.Add(entity);
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)/$ref", RouteName = RouteName)]
+        public async Task<IActionResult> Delete<#= navName #>Ref(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
+        {
+            var root = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+
+            if (root == null)
+                return NotFound();
+
+            var entity = root.<#= navName #>.Where(<#= navKeysNameCondition #>).FirstOrDefault();
+
+            if (entity == null)
+                return NotFound();
+
+            root.<#= navName #>.Remove(entity);
+
+            await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+    <#  } #>
     }
 <# } #>
 }

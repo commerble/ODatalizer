@@ -75,5 +75,12 @@ namespace ODatalizer.EFCore.Templates
 
             throw new NotImplementedException();
         }
+
+        public bool IsSkipNavigation(IEdmNavigationPropertyBinding bind)
+        {
+            var skipNavigation = DbContext.Model.FindEntityType(bind.NavigationProperty.DeclaringType.FullTypeName()).FindDeclaredSkipNavigation(bind.NavigationProperty.Name);
+            
+            return skipNavigation != null;
+        }
     }
 }

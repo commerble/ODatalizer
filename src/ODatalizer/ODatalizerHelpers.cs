@@ -5,6 +5,7 @@ using Microsoft.OData.UriParser;
 using System;
 using System.Linq;
 using Microsoft.OData.Edm;
+using System.Collections.Concurrent;
 
 namespace ODatalizer
 {
@@ -63,6 +64,43 @@ namespace ODatalizer
                 var uri = urlHelper.CreateODataLink(entitySetSegment, keySegment);
                 yield return new Uri(uri);
             }
+        }
+
+        private static ConcurrentDictionary<Type, Func<IEnumerable<object>, IEnumerable<Uri>>> _cachedUriResolvers
+            = new ConcurrentDictionary<Type, Func<IEnumerable<object>, IEnumerable<Uri>>>();
+
+        public static Func<IEnumerable<object>, IEnumerable<Uri>> GetResourceUriResolver(this HttpRequest request, Type type)
+        {
+            var resolver = _cachedUriResolvers.GetOrAdd(type, type =>
+            {
+                var clrType = type.FullName.StartsWith("Castle.Proxies.") ? type.BaseType
+                            : type.FullName.StartsWith("System.Data.Entity.DynamicProxies.") ? type.BaseType
+                            : type;
+
+                var edm = request.GetModel();
+
+                var edmType = edm.FindDeclaredType(clrType.FullName) as EdmEntityType;
+                if (edmType == null)
+                    return null;
+
+                var entitySet = edm.EntityContainer.Elements.FirstOrDefault(el => el.ContainerElementKind == EdmContainerElementKind.EntitySet && ((EdmEntitySet)el).EntityType() == edmType) as EdmEntitySet;
+                if (entitySet == null)
+                    return null;
+
+                var keySelectors = edmType.DeclaredKey.Select<IEdmStructuralProperty, Func<object, KeyValuePair<string, object>>>(key =>
+                {
+                    var propInfo = clrType.GetProperty(key.Name);
+                    return o => KeyValuePair.Create(key.Name, propInfo.GetValue(o));
+                }).ToList();
+
+                var entitySetSegment = new EntitySetSegment(entitySet);
+                var urlHelper = request.GetUrlHelper();
+
+                return (values) =>
+                    values.Select(o => new KeySegment(keySelectors.Select(f => f(o)), entitySet.EntityType(), null))
+                          .Select(keySegment => new Uri(urlHelper.CreateODataLink(entitySetSegment, keySegment)));
+            });
+            return resolver;
         }
     }
 }

@@ -167,7 +167,92 @@ namespace ");
                     "   _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            return N" +
-                    "oContent();\n        }\n    }\n");
+                    "oContent();\n        }\n\n    ");
+
+        var suffix = 1;
+        foreach(var bind in entitySet.NavigationPropertyBindings.Where(n => IsSkipNavigation(n)))
+        {
+            var nav = bind.NavigationProperty;
+            var navEntityType = nav.ToEntityType();
+            var navKeys = navEntityType.DeclaredKey;
+
+            var navEntityName = navEntityType.FullTypeName();
+            var navName = nav.Name;
+            var navKeysTypeNameComma = navKeys.Select(key => Type(key.Type) + " " + key.Name + suffix).Join(", ");
+            var navKeysNameComma = navKeys.Select(key => key.Name + suffix).Join(", ");
+            var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + suffix + "}").Join(", ");
+            var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
+    
+            this.Write("\n        [EnableQueryRef]\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("/$ref\", RouteName = RouteName)]\n        public async Task<IActionResult> Get");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("Ref(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(")\n        {\n            var entity = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
+                    "   return Ok(entity.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(");\n        }\n\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("/$ref\", RouteName = RouteName)]\n        public async Task<IActionResult> Post");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("Ref(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(", [FromBody]Uri uri)\n        {\n            var keys = Request.GetKeysFromUri(uri)" +
+                    ";\n            var key = keys.FirstOrDefault();\n\n            if (key == null)\n   " +
+                    "             return BadRequest();\n\n            var entity = await _db.Set<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
+            this.Write(">().FindAsync(key.Values.ToArray());\n\n            if (entity == null)\n           " +
+                    "     return NotFound();\n\n            var root = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n\n            if (root == null)\n                return NotFound();\n\n           " +
+                    " root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n\n            return Ok()" +
+                    ";\n        }\n\n        [ODataRoute(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameBraceComma));
+            this.Write(")/$ref\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("Ref(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(", ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
+            this.Write(")\n        {\n            var root = await _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".FindAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n\n            if (root == null)\n                return NotFound();\n\n           " +
+                    " var entity = root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameCondition));
+            this.Write(").FirstOrDefault();\n\n            if (entity == null)\n                return NotFo" +
+                    "und();\n\n            root.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            return N" +
+                    "oContent();\n        }\n\n    ");
+  } 
+            this.Write("\n    }\n");
  } 
             this.Write("\n}");
             return this.GenerationEnvironment.ToString();

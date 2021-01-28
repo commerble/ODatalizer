@@ -28,7 +28,11 @@ namespace Sample.EFCore.Data
             db.SaveChanges();
 
             db.Categories.Add(new Category { Name = "Category 1" });
+            db.SaveChanges();
+
             db.Categories.Add(new Category { Name = "Category 2" });
+            db.SaveChanges();
+
             db.Categories.Add(new Category { Name = "Category 3" });
             db.SaveChanges();
 

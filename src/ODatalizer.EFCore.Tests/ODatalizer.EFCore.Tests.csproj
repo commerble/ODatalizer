@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-
+    <NoWarn>xUnit2013</NoWarn>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
