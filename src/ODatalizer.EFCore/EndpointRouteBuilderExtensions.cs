@@ -4,6 +4,7 @@ using Microsoft.AspNet.OData.Formatter.Deserialization;
 using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.OData;
+using Microsoft.OData.Json;
 using ODatalizer.Batch;
 using ODatalizer.EFCore.Routing.Conventions;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace ODatalizer.EFCore
             foreach (var ep in endpoints)
             {
                 builder.MapODataRoute(ep.RouteName, ep.RoutePrefix, b => {
+                    b.AddService<IJsonWriterFactory>(ServiceLifetime.Singleton, sp => new DefaultJsonWriterFactory(ODataStringEscapeOption.EscapeOnlyControls));
                     b.AddService(ServiceLifetime.Singleton, sp => ep.EdmModel);
                     b.AddService<ODataBatchHandler>(ServiceLifetime.Singleton, sp => new ODatalizerBatchHandler());
                     b.AddService<ODataDeserializerProvider>(ServiceLifetime.Singleton, sp => new DefaultODataDeserializerProvider(sp));
