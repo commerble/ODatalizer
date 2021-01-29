@@ -7,13 +7,17 @@ The simplest implementation of OData server.
 * Simple setup
 * Can use even if dynamic load DbContext assembly
 
-## Entitfy Framework Core 3.x
+## Install
 
-### Install
+### Entity Framework Core 5.x
+
+    $ dotnet add package ODatalizer.EFCore --version 5.*
+
+### Entity Framework Core 3.x
 
     $ dotnet add package ODatalizer.EFCore --version 3.*
 
-### Usage
+## Usage
 
 ```cs:Startup.cs
 public void ConfigureServices(IServiceCollection services)
@@ -51,11 +55,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDb
 }
 ```
 
-### Many to Many
-
-Entity Framework Core 3.x has not many to many relatioship feature.
-
-### Navigation Resource Path
+## Navigation Resource Path
 When you need to read and write all accesses, custom dynamic controller inherits `ODatalizerController<TDbContext>`.
 
 ```cs:SampleController
@@ -76,3 +76,22 @@ var ep = new ODatalizerEndpoint(db:sample,
                                 routePrefix: "sample",
                                 controller: nameof(SampleController));
 ```
+
+
+## Many to Many (Skip navigation)
+
+### Entity Framework Core 5.x
+
+Auto generate first level navigationlink property endpoint.
+
+- generate : ~/entityset/key/navigation/$ref
+- generate : ~/entityset/key/navigation/key/$ref
+- not generate : ~/entityset/key/navigation/navigation/$ref
+- not generate : ~/entityset/key/navigation/navigation/navigation/$ref
+
+Dynamic controller does not support navigationlink segment.
+If you need not generate path, create controller action by self in ODataController or ODatalizerController.
+
+### Entity Framework Core 3.x
+
+Entity Framework Core 3.x has not many to many relatioship feature.
