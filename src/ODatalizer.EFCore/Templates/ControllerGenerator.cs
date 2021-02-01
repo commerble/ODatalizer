@@ -104,7 +104,7 @@ namespace ");
                     "y]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
             this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
-                    "dRequest(entity);\n\n            _db.");
+                    "dRequest(ModelState);\n\n            _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n            \n           " +
                     " return Created(entity);\n        }\n\n        [ODataRoute(\"");
@@ -118,8 +118,8 @@ namespace ");
             this.Write(" entity)\n        {\n            if (");
             this.Write(this.ToStringHelper.ToStringWithCulture(keys.Select(key => key.Name + "0" + " != entity." + key.Name).Join(" || ")));
             this.Write(")\n                return BadRequest();\n        \n            if (!ModelState.IsVal" +
-                    "id)\n                return BadRequest(entity);\n\n            var original = await" +
-                    " _db.");
+                    "id)\n                return BadRequest(ModelState);\n\n            var original = a" +
+                    "wait _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
@@ -212,7 +212,8 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", [FromBody]Uri uri)\n        {\n            var keys = Request.GetKeysFromUri(uri)" +
                     ";\n            var key = keys.FirstOrDefault();\n\n            if (key == null)\n   " +
-                    "             return BadRequest();\n\n            var entity = await _db.Set<");
+                    "             return BadRequest(ModelState);\n\n            var entity = await _db." +
+                    "Set<");
             this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
             this.Write(">().FindAsync(key.Values.ToArray());\n\n            if (entity == null)\n           " +
                     "     return NotFound();\n\n            var root = await _db.");
