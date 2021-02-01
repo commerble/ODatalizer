@@ -71,7 +71,7 @@ namespace <#= Namespace #>
         public async Task<IActionResult> Post([FromBody]<#= entityName #> entity)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(this.CreateSerializableErrorFromModelState());
 
             _db.<#= entitySetName #>.Add(entity);
 
@@ -87,7 +87,7 @@ namespace <#= Namespace #>
                 return BadRequest();
         
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(this.CreateSerializableErrorFromModelState());
 
             var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
@@ -169,7 +169,7 @@ namespace <#= Namespace #>
             var key = keys.FirstOrDefault();
 
             if (key == null)
-                return BadRequest(ModelState);
+                return BadRequest(this.CreateSerializableErrorFromModelState());
 
             var entity = await _db.Set<<#= navEntityName #>>().FindAsync(key.Values.ToArray());
 

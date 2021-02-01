@@ -6,6 +6,9 @@ using System;
 using System.Linq;
 using Microsoft.OData.Edm;
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNet.OData;
+using Microsoft.OData;
 
 namespace ODatalizer
 {
@@ -101,6 +104,48 @@ namespace ODatalizer
                           .Select(keySegment => new Uri(urlHelper.CreateODataLink(entitySetSegment, keySegment)));
             });
             return resolver;
+        }
+
+        public static SerializableError CreateSerializableErrorFromModelState(this ODataController controller)
+        {
+            // https://source.dot.net/#Microsoft.AspNetCore.Mvc.Core/SerializableError.cs,19bc9a1c61ce7ae0
+            var serializableError = new SerializableError();
+
+            foreach (var keyModelStatePair in controller.ModelState)
+            {
+                var key = keyModelStatePair.Key;
+                var errors = keyModelStatePair.Value.Errors;
+                if (errors != null && errors.Count > 0)
+                {
+                    var errorMessages = errors.Select(error =>
+                    {
+                        return string.IsNullOrEmpty(error.ErrorMessage) ? "The input was not valid." : error.ErrorMessage;
+                    }).ToArray();
+                    
+                    serializableError.Add(key, errorMessages);
+
+                    foreach (var error in errors)
+                    {
+                        if (error.Exception != null)
+                        {
+                            // Add more error details.
+                            // e.g.
+                            // ```
+                            // One or more errors occurred. (
+                            //  One or more errors occurred. (
+                            //   A null value was found for the property named 'UnitPrice', which has the expected type 'Edm.Decimal[Nullable=False]'. 
+                            //   The expected type 'Edm.Decimal[Nullable=False]' does not allow null values.
+                            //  )
+                            // )
+                            // ```
+                            serializableError.Add("MessageDetail", error.Exception.Message);
+                        }
+                    }
+
+                }
+            }
+
+            return serializableError;
         }
     }
 }

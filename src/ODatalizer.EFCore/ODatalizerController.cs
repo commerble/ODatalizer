@@ -93,7 +93,7 @@ namespace ODatalizer.EFCore
             var result = await FormatReadAsync(_visitor.ResultType);
 
             if (result == null || result.HasError || result.IsModelSet == false || result.Model == null || TryValidateModel(result.Model) == false)
-                return BadRequest(ModelState);
+                return BadRequest(this.CreateSerializableErrorFromModelState());
 
             if (_visitor.PropertySetter != null)
             {
@@ -140,7 +140,7 @@ namespace ODatalizer.EFCore
             var result = await FormatReadAsync(_visitor.ResultType);
 
             if (result == null || result.HasError || result.IsModelSet == false || result.Model == null || TryValidateModel(result.Model) == false)
-                return BadRequest(ModelState);
+                return BadRequest(this.CreateSerializableErrorFromModelState());
 
 
             if (odataPath.Path.LastSegment is PropertySegment || odataPath.Path.LastSegment is ValueSegment)
@@ -189,7 +189,7 @@ namespace ODatalizer.EFCore
             var result = await FormatReadAsync(type);
 
             if (result == null || result.HasError || result.IsModelSet == false || result.Model == null || TryValidateModel(result.Model) == false)
-                return BadRequest(ModelState);
+                return BadRequest(this.CreateSerializableErrorFromModelState());
 
             type.GetMethod("Patch", BindingFlags.Public | BindingFlags.Instance).Invoke(result.Model, new [] { _visitor.Result });
 
