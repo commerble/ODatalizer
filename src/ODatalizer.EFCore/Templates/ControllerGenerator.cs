@@ -53,6 +53,8 @@ using Microsoft.OData.UriParser;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using ODatalizer;
+using ODatalizer.EFCore;
 
 namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));

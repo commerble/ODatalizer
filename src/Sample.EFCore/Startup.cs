@@ -20,11 +20,16 @@ namespace Sample.EFCore
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            TestSettings = new TestSettings
+            {
+                UseAuthorize = Configuration.GetValue<bool?>("UseAuthorize") ?? true,
+                Namespace = Configuration.GetValue<string>("Namespace"),
+            };
         }
 
         public IConfiguration Configuration { get; }
 
-        public static bool UseAuthorize = true;
+        public TestSettings TestSettings { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -45,7 +50,8 @@ namespace Sample.EFCore
                 services.AddDbContext<SampleDbContext>(opt => opt.UseSqlServer(sqlsvr).UseLazyLoadingProxies());
             }
 
-            if (UseAuthorize)
+            services.Configure<TestSettings>(Configuration);
+            if (TestSettings.UseAuthorize)
             {
                 services.AddAuthorization(options =>
                 {
@@ -83,7 +89,8 @@ namespace Sample.EFCore
                             routeName:"Sample", 
                             routePrefix:"sample", 
                             controller:nameof(SampleController), 
-                            authorize: UseAuthorize);
+                            authorize: TestSettings.UseAuthorize,
+                            @namespace: TestSettings.Namespace);
 
             SampleDbInitializer.Initialize(sample);
 
@@ -100,7 +107,7 @@ namespace Sample.EFCore
 
             app.UseRouting();
 
-            if (UseAuthorize)
+            if (TestSettings.UseAuthorize)
             {
                 app.UseAuthentication();
                 app.UseAuthorization();

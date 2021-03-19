@@ -1,18 +1,22 @@
 ﻿using System;
 using Sample.EFCore.Data;
-using ODatalizer.EFCore;
 using Sample.EFCore.Entities;
-using Microsoft.AspNet.OData.Routing;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using ODatalizer;
+using ODatalizer.EFCore;
+
 
 namespace Sample.EFCore.Controllers
 {
     public class SampleController : ODatalizerController<SampleDbContext>
     {
-        public SampleController(IServiceProvider sp) : base(sp, authorize:Startup.UseAuthorize)
+        public SampleController(IServiceProvider sp) 
+            : base(sp, authorize:sp.GetService<IOptions<TestSettings>>().Value.UseAuthorize)
         {
         }
 

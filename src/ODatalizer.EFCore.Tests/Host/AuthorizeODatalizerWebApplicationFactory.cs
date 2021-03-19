@@ -14,7 +14,8 @@ namespace ODatalizer.EFCore.Tests.Host
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            Sample.EFCore.Startup.UseAuthorize = true;
+            builder.UseSetting("UseAuthorize", "true");
+            builder.UseSetting("Namespace", "Authorize");
             builder.ConfigureServices(services =>
             {
                 var connection = new SqliteConnection("datasource=:memory:");
