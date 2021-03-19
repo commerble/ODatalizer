@@ -12,7 +12,7 @@ namespace Sample.EFCore.Controllers
 {
     public class SampleController : ODatalizerController<SampleDbContext>
     {
-        public SampleController(IServiceProvider sp) : base(sp)
+        public SampleController(IServiceProvider sp) : base(sp, authorize:Startup.UseAuthorize)
         {
         }
 

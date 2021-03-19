@@ -33,6 +33,8 @@ namespace ODatalizer.EFCore
         public Action<object> PropertySetter { get; protected set; }
         public int Index;
 
+        public ODatalizerAuthorizationInfo AuthorizationInfo { get; } = new ODatalizerAuthorizationInfo();
+
         public async Task VisitAsync(ODataPath path)
         {
             NotFound = false;
@@ -95,6 +97,8 @@ namespace ODatalizer.EFCore
                 PropertySetter = null;
             }
 
+            AuthorizationInfo.AccessedResources.Add(ResultType.FullName);
+
             return Task.CompletedTask;
         }
 
@@ -111,6 +115,7 @@ namespace ODatalizer.EFCore
 
             Result = dbSet;
             ResultType = entityType;
+            AuthorizationInfo.AccessedResources.Add(entityType.FullName);
             return Task.CompletedTask;
         }
 
@@ -226,5 +231,10 @@ namespace ODatalizer.EFCore
 
             return first;
         }
+    }
+
+    public class ODatalizerAuthorizationInfo
+    {
+        public List<string> AccessedResources = new List<string>();
     }
 }

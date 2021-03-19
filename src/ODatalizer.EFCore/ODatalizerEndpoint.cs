@@ -19,13 +19,15 @@ namespace ODatalizer.EFCore
         public IEdmModel EdmModel { get; }
         public string ODatalizerController { get; set; }
         public int PageSize { get; } = DefaultPageSize;
-        public ODatalizerEndpoint(DbContext db, string routeName = null, string routePrefix = null, string controller = null, string @namespace = null)
+        public bool Authorize { get; }
+        public ODatalizerEndpoint(DbContext db, string routeName = null, string routePrefix = null, string controller = null, string @namespace = null, bool authorize = false)
         {
             DbContext = db;
             Namespace = @namespace;
             ODatalizerController = controller;
             RouteName = routeName;
             RoutePrefix = routePrefix;
+            Authorize = authorize;
             EdmModel = EdmBuilder.Build(db);
         }
     }

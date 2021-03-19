@@ -35,7 +35,7 @@ namespace ODatalizer.Batch
             {
                 tran.Complete();
             }
-
+            
             tran.Dispose();
 
             return responses;

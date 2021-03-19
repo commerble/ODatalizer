@@ -10,11 +10,11 @@ using System.Linq;
 
 namespace ODatalizer.EFCore.Tests.Host
 {
-    public class ODatalizerWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
+    public class AuthorizeODatalizerWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            Sample.EFCore.Startup.UseAuthorize = false;
+            Sample.EFCore.Startup.UseAuthorize = true;
             builder.ConfigureServices(services =>
             {
                 var connection = new SqliteConnection("datasource=:memory:");

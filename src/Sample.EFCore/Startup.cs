@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
@@ -21,6 +24,8 @@ namespace Sample.EFCore
 
         public IConfiguration Configuration { get; }
 
+        public static bool UseAuthorize = true;
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -39,6 +44,33 @@ namespace Sample.EFCore
             {
                 services.AddDbContext<SampleDbContext>(opt => opt.UseSqlServer(sqlsvr).UseLazyLoadingProxies());
             }
+
+            if (UseAuthorize)
+            {
+                services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("Read", policy =>
+                        policy.Requirements.Add(new OperationAuthorizationRequirement { Name = "Read" }));
+
+                    options.AddPolicy("Write", policy =>
+                        policy.Requirements.Add(new OperationAuthorizationRequirement { Name = "Write" }));
+                });
+                services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                        .AddCookie(opt => {
+                            opt.Events.OnRedirectToAccessDenied = context =>
+                            {
+                                context.Response.StatusCode = 403;
+                                return System.Threading.Tasks.Task.CompletedTask;
+                            };
+                            opt.Events.OnRedirectToLogin = context =>
+                            {
+                                context.Response.StatusCode = 401;
+                                return System.Threading.Tasks.Task.CompletedTask;
+                            };
+                        });
+            }
+
+            services.AddSingleton<IAuthorizationHandler, SampleAuthorizationHandler>();
             services.AddODatalizer();
             services.AddControllers();
         }
@@ -46,7 +78,12 @@ namespace Sample.EFCore
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
         {
-            var ep = new ODatalizerEndpoint(sample, "Sample", "sample", nameof(SampleController));
+            var ep = new ODatalizerEndpoint(
+                            db:sample, 
+                            routeName:"Sample", 
+                            routePrefix:"sample", 
+                            controller:nameof(SampleController), 
+                            authorize: UseAuthorize);
 
             SampleDbInitializer.Initialize(sample);
 
@@ -57,11 +94,17 @@ namespace Sample.EFCore
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseStatusCodePages();
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            if (UseAuthorize)
+            {
+                app.UseAuthentication();
+                app.UseAuthorization();
+            }
 
             app.UseEndpoints(endpoints =>
             {

@@ -15,6 +15,7 @@
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -42,16 +43,39 @@ namespace <#= Namespace #>
         private const string RouteName = <#= RouteNameValue #>;
         private readonly <#= DbContextTypeName #> _db;
         private readonly ILogger<<#= controllerName #>> _logger;
-        public <#= controllerName #>(<#= DbContextTypeName #> db, ILogger<<#= controllerName #>> logger)
+        private readonly IAuthorizationService _authorization;
+
+        public <#= controllerName #>(<#= DbContextTypeName #> db, ILogger<<#= controllerName #>> logger, IAuthorizationService authorization)
         {
             _db = db;
             _logger = logger;
+            _authorization = authorization;
         }
 
         [EnableQuery(PageSize = <#= PageSize #>)]
         [ODataRoute("<#= entitySetName #>", RouteName = RouteName)]
+        <# if(Authorize) { #>
+        public async Task<IActionResult> Get()
+        {
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } else  {#>
         public IActionResult Get()
         {
+        <# } #>
             return Ok(_db.<#= entitySetName #>);
         }
 
@@ -59,6 +83,23 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> GetOne(<#= keysTypeNameComma #>)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (entity == null)
@@ -70,6 +111,23 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>", RouteName = RouteName)]
         public async Task<IActionResult> Post([FromBody]<#= entityName #> entity)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             if (!ModelState.IsValid)
                 return BadRequest(this.CreateSerializableErrorFromModelState());
 
@@ -83,6 +141,23 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Put(<#= keysTypeNameComma #>, [FromBody]<#= entityName #> entity)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             if (<#= keys.Select(key => key.Name + "0" + " != entity." + key.Name).Join(" || ") #>)
                 return BadRequest();
         
@@ -108,6 +183,23 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Patch(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (original == null)
@@ -123,6 +215,23 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> Delete(<#= keysTypeNameComma #>)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (entity == null)
@@ -154,6 +263,24 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref", RouteName = RouteName)]
         public async Task<IActionResult> Get<#= navName #>Ref(<#= keysTypeNameComma #>)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>",
+                    "<#= navEntityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (entity == null)
@@ -165,6 +292,24 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref", RouteName = RouteName)]
         public async Task<IActionResult> Post<#= navName #>Ref(<#= keysTypeNameComma #>, [FromBody]Uri uri)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>",
+                    "<#= navEntityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             var keys = Request.GetKeysFromUri(uri);
             var key = keys.FirstOrDefault();
 
@@ -191,6 +336,24 @@ namespace <#= Namespace #>
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)/$ref", RouteName = RouteName)]
         public async Task<IActionResult> Delete<#= navName #>Ref(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
         {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>",
+                    "<#= navEntityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
             var root = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
 
             if (root == null)

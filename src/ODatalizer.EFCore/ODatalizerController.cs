@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -23,12 +24,16 @@ namespace ODatalizer.EFCore
         private readonly IOptions<MvcOptions> _mvcOptions;
         private readonly IModelMetadataProvider _modelMetadataProvider;
         private readonly ILogger<ODatalizerController<TDbContext>> _logger;
-        public ODatalizerController(IServiceProvider sp)
+        private readonly IAuthorizationService _authorization;
+        private readonly bool _authorize;
+        public ODatalizerController(IServiceProvider sp, bool authorize = false)
         {
             DbContext = sp.GetRequiredService<TDbContext>();
             _mvcOptions = sp.GetRequiredService<IOptions<MvcOptions>>();
             _modelMetadataProvider = sp.GetRequiredService<IModelMetadataProvider>();
             _logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger<ODatalizerController<TDbContext>>();
+            _authorization = sp.GetService<IAuthorizationService>();
+            _authorize = authorize;
             _visitor = new ODatalizerVisitor(DbContext);
         }
 
@@ -60,6 +65,19 @@ namespace ODatalizer.EFCore
             if (_visitor.NotFound || _visitor.Result == null)
                 return NotFound();
 
+            if (_authorize)
+            {
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Read");
+
+                if (!authorizationResult.Succeeded)
+                {
+                    if (User.Identity.IsAuthenticated)
+                        return Forbid();
+                    else
+                        return Unauthorized();
+                }
+            }
+
             return Ok(_visitor.Result);
         }
 
@@ -90,6 +108,19 @@ namespace ODatalizer.EFCore
             if (_visitor.NotFound)
                 return NotFound();
 
+            if (_authorize)
+            {
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+
+                if (!authorizationResult.Succeeded)
+                {
+                    if (User.Identity.IsAuthenticated)
+                        return Forbid();
+                    else
+                        return Unauthorized();
+                }
+            }
+
             var result = await FormatReadAsync(_visitor.ResultType);
 
             if (result == null || result.HasError || result.IsModelSet == false || result.Model == null || TryValidateModel(result.Model) == false)
@@ -98,7 +129,6 @@ namespace ODatalizer.EFCore
             if (_visitor.PropertySetter != null)
             {
                 _visitor.PropertySetter.Invoke(result.Model);
-
             }
             else
             {
@@ -136,6 +166,19 @@ namespace ODatalizer.EFCore
 
             if (_visitor.NotFound || _visitor.Result == null)
                 return NotFound();
+
+            if (_authorize)
+            {
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+
+                if (!authorizationResult.Succeeded)
+                {
+                    if (User.Identity.IsAuthenticated)
+                        return Forbid();
+                    else
+                        return Unauthorized();
+                }
+            }
 
             var result = await FormatReadAsync(_visitor.ResultType);
 
@@ -185,6 +228,19 @@ namespace ODatalizer.EFCore
             if (_visitor.NotFound || _visitor.Result == null)
                 return NotFound();
 
+            if (_authorize)
+            {
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+
+                if (!authorizationResult.Succeeded)
+                {
+                    if (User.Identity.IsAuthenticated)
+                        return Forbid();
+                    else
+                        return Unauthorized();
+                }
+            }
+
             var type = typeof(Delta<>).MakeGenericType(_visitor.ResultType);
             var result = await FormatReadAsync(type);
 
@@ -224,6 +280,19 @@ namespace ODatalizer.EFCore
 
             if (_visitor.NotFound || _visitor.Result == null)
                 return NotFound();
+
+            if (_authorize)
+            {
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+
+                if (!authorizationResult.Succeeded)
+                {
+                    if (User.Identity.IsAuthenticated)
+                        return Forbid();
+                    else
+                        return Unauthorized();
+                }
+            }
 
             if (_visitor.PropertySetter != null)
             {

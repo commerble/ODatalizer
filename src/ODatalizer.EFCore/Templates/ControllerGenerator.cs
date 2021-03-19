@@ -44,6 +44,7 @@ namespace ODatalizer.EFCore.Templates
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -75,19 +76,42 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(DbContextTypeName));
             this.Write(" _db;\n        private readonly ILogger<");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
-            this.Write("> _logger;\n        public ");
+            this.Write("> _logger;\n        private readonly IAuthorizationService _authorization;\n\n      " +
+                    "  public ");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(DbContextTypeName));
             this.Write(" db, ILogger<");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
-            this.Write("> logger)\n        {\n            _db = db;\n            _logger = logger;\n        }" +
-                    "\n\n        [EnableQuery(PageSize = ");
+            this.Write("> logger, IAuthorizationService authorization)\n        {\n            _db = db;\n  " +
+                    "          _logger = logger;\n            _authorization = authorization;\n        " +
+                    "}\n\n        [EnableQuery(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
             this.Write(")]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("\", RouteName = RouteName)]\n        public IActionResult Get()\n        {\n         " +
-                    "   return Ok(_db.");
+            this.Write("\", RouteName = RouteName)]\n        ");
+ if(Authorize) { 
+            this.Write("\n        public async Task<IActionResult> Get()\n        {\n            var resourc" +
+                    "e = new ODatalizerAuthorizationInfo\n            {\n                AccessedResour" +
+                    "ces = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Read"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } else  {
+            this.Write("\n        public IActionResult Get()\n        {\n        ");
+ } 
+            this.Write("\n            return Ok(_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(");\n        }\n\n        [EnableQuery(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
@@ -97,7 +121,26 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> GetOne(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(")\n        {\n            var entity = await _db.");
+            this.Write(")\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Read"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
@@ -107,8 +150,27 @@ namespace ");
             this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post([FromBod" +
                     "y]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(" entity)\n        {\n            if (!ModelState.IsValid)\n                return Ba" +
-                    "dRequest(this.CreateSerializableErrorFromModelState());\n\n            _db.");
+            this.Write(" entity)\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            if (!ModelState.IsValid)\n                return BadRequest(this.Crea" +
+                    "teSerializableErrorFromModelState());\n\n            _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n            \n           " +
                     " return Created(entity);\n        }\n\n        [ODataRoute(\"");
@@ -119,7 +181,26 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", [FromBody]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(" entity)\n        {\n            if (");
+            this.Write(" entity)\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            if (");
             this.Write(this.ToStringHelper.ToStringWithCulture(keys.Select(key => key.Name + "0" + " != entity." + key.Name).Join(" || ")));
             this.Write(")\n                return BadRequest();\n        \n            if (!ModelState.IsVal" +
                     "id)\n                return BadRequest(this.CreateSerializableErrorFromModelState" +
@@ -151,7 +232,26 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", [FromBody]Delta<");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write("> delta)\n        {\n            var original = await _db.");
+            this.Write("> delta)\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            var original = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
@@ -163,7 +263,26 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(")\n        {\n            var entity = await _db.");
+            this.Write(")\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
@@ -199,7 +318,28 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("Ref(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(")\n        {\n            var entity = await _db.");
+            this.Write(")\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write("\",\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Read"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
@@ -216,15 +356,31 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("Ref(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(@", [FromBody]Uri uri)
-        {
-            var keys = Request.GetKeysFromUri(uri);
-            var key = keys.FirstOrDefault();
+            this.Write(", [FromBody]Uri uri)\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write("\",\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
 
-            if (key == null)
-                return BadRequest(this.CreateSerializableErrorFromModelState());
-
-            var entity = await _db.Set<");
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            var keys = Request.GetKeysFromUri(uri);\n            var key = keys.F" +
+                    "irstOrDefault();\n\n            if (key == null)\n                return BadRequest" +
+                    "(this.CreateSerializableErrorFromModelState());\n\n            var entity = await " +
+                    "_db.Set<");
             this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
             this.Write(">().FindAsync(key.Values.ToArray());\n\n            if (entity == null)\n           " +
                     "     return NotFound();\n\n            var root = await _db.");
@@ -249,7 +405,28 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", ");
             this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
-            this.Write(")\n        {\n            var root = await _db.");
+            this.Write(")\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write("\",\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FindAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
