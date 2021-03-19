@@ -12,6 +12,7 @@ namespace ODatalizer.EFCore.Templates
         public DbContext DbContext { get; }
         public string DbContextTypeName { get; }
         public string RouteName { get; }
+        public int PageSize { get; }
 
         public string RouteNameValue => RouteName != null ? '"' + RouteName + '"' : "null";
 
@@ -37,6 +38,7 @@ namespace ODatalizer.EFCore.Templates
             DbContext = ep.DbContext;
             DbContextTypeName = ep.DbContext.GetType().FullName;
             RouteName = ep.RouteName;
+            PageSize = ep.PageSize;
             _namespace = ep.Namespace;
         }
 

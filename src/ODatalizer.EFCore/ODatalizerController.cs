@@ -32,7 +32,7 @@ namespace ODatalizer.EFCore
             _visitor = new ODatalizerVisitor(DbContext);
         }
 
-        [EnableQuery]
+        [EnableQuery(PageSize = ODatalizerEndpoint.DefaultPageSize)]
         public async Task<IActionResult> Get()
         {
             var odataPath = Request.ODataFeature().Path;

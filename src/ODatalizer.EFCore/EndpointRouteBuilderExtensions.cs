@@ -15,7 +15,7 @@ namespace ODatalizer.EFCore
     {
         public static void MapODatalizer(this IEndpointRouteBuilder builder, params ODatalizerEndpoint[] endpoints)
         {
-            builder.Select().Expand().Filter().OrderBy().MaxTop(100).Count().SkipToken();
+            builder.Select().Expand().Filter().OrderBy().Count().SkipToken();
             foreach (var ep in endpoints)
             {
                 builder.MapODataRoute(ep.RouteName, ep.RoutePrefix, b => {

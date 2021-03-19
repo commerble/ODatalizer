@@ -22,7 +22,7 @@ namespace Sample.EFCore.Controllers
         /// <param name="Id"></param>
         /// <param name="uri"></param>
         /// <returns></returns>
-        [EnableQueryRef]
+        [EnableQueryRef(PageSize = 100)]
         [ODataRoute("Products({id})/Categories/$ref", RouteName = "Sample")]
         public async Task<IActionResult> PostProductCategoriesRef(long id, [FromBody] Uri uri)
         {
