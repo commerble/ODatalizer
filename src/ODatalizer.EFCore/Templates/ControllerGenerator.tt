@@ -48,14 +48,14 @@ namespace <#= Namespace #>
             _logger = logger;
         }
 
-        [EnableQuery]
+        [EnableQuery(PageSize = <#= PageSize #>)]
         [ODataRoute("<#= entitySetName #>", RouteName = RouteName)]
         public IActionResult Get()
         {
             return Ok(_db.<#= entitySetName #>);
         }
 
-        [EnableQuery]
+        [EnableQuery(PageSize = <#= PageSize #>)]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> GetOne(<#= keysTypeNameComma #>)
         {
@@ -150,7 +150,7 @@ namespace <#= Namespace #>
             var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + suffix + "}").Join(", ");
             var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
     #>
-        [EnableQueryRef]
+        [EnableQueryRef(PageSize = <#= PageSize #>)]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref", RouteName = RouteName)]
         public async Task<IActionResult> Get<#= navName #>Ref(<#= keysTypeNameComma #>)
         {

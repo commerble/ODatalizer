@@ -6,12 +6,19 @@ namespace ODatalizer.EFCore
 {
     public class ODatalizerEndpoint
     {
+        /// <summary>
+        /// DefaultPageSize is const value 
+        /// because EnableQueryAttribute of ODatalizerController need const value.
+        /// You cannot change this value yet.
+        /// </summary>
+        public const int DefaultPageSize = 100;
         public string Namespace { get; }
         public string RouteName { get; }
         public string RoutePrefix { get; }
         public DbContext DbContext { get; }
         public IEdmModel EdmModel { get; }
         public string ODatalizerController { get; set; }
+        public int PageSize { get; } = DefaultPageSize;
         public ODatalizerEndpoint(DbContext db, string routeName = null, string routePrefix = null, string controller = null, string @namespace = null)
         {
             DbContext = db;

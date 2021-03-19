@@ -82,12 +82,16 @@ namespace ");
             this.Write(" db, ILogger<");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
             this.Write("> logger)\n        {\n            _db = db;\n            _logger = logger;\n        }" +
-                    "\n\n        [EnableQuery]\n        [ODataRoute(\"");
+                    "\n\n        [EnableQuery(PageSize = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
+            this.Write(")]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("\", RouteName = RouteName)]\n        public IActionResult Get()\n        {\n         " +
                     "   return Ok(_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(");\n        }\n\n        [EnableQuery]\n        [ODataRoute(\"");
+            this.Write(");\n        }\n\n        [EnableQuery(PageSize = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
+            this.Write(")]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
@@ -183,7 +187,9 @@ namespace ");
             var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + suffix + "}").Join(", ");
             var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
     
-            this.Write("\n        [EnableQueryRef]\n        [ODataRoute(\"");
+            this.Write("\n        [EnableQueryRef(PageSize = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
+            this.Write(")]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
