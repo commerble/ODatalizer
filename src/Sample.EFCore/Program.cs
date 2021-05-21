@@ -20,6 +20,7 @@ namespace Sample.EFCore
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseSetting("UseAuthorize", "false");
                     webBuilder.UseStartup<Startup>();
                 });
     }
