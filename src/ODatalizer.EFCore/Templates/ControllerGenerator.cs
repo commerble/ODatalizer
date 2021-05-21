@@ -89,6 +89,8 @@ namespace ");
                     "          _logger = logger;\n            _authorization = authorization;\n        " +
                     "}\n\n        [EnableQuery(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
+            this.Write(", MaxExpansionDepth = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
             this.Write(")]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("\", RouteName = RouteName)]\n        ");
@@ -117,6 +119,8 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(");\n        }\n\n        [EnableQuery(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
+            this.Write(", MaxExpansionDepth = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
             this.Write(")]\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");

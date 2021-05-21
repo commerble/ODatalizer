@@ -38,7 +38,7 @@ namespace ODatalizer.EFCore
         }
 
         [EnableQuery(PageSize = ODatalizerEndpoint.DefaultPageSize)]
-        public async Task<IActionResult> Get()
+        public virtual async Task<IActionResult> Get()
         {
             var odataPath = Request.ODataFeature().Path;
 
@@ -81,7 +81,7 @@ namespace ODatalizer.EFCore
             return Ok(_visitor.Result);
         }
 
-        public async Task<IActionResult> Post()
+        public virtual async Task<IActionResult> Post()
         {
             var odataPath = Request.ODataFeature().Path;
 
@@ -140,7 +140,7 @@ namespace ODatalizer.EFCore
             return Created(result.Model);
         }
 
-        public async Task<IActionResult> Put()
+        public virtual async Task<IActionResult> Put()
         {
             var odataPath = Request.ODataFeature().Path;
 
@@ -201,7 +201,7 @@ namespace ODatalizer.EFCore
             return NoContent();
         }
 
-        public async Task<IActionResult> Patch()
+        public virtual async Task<IActionResult> Patch()
         {
             var odataPath = Request.ODataFeature().Path;
 
@@ -254,7 +254,7 @@ namespace ODatalizer.EFCore
             return NoContent();
         }
 
-        public async Task<IActionResult> Delete()
+        public virtual async Task<IActionResult> Delete()
         {
             var odataPath = Request.ODataFeature().Path;
 

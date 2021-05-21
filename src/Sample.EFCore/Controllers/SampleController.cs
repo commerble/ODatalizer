@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ODatalizer;
 using ODatalizer.EFCore;
-
+using Microsoft.AspNet.OData;
 
 namespace Sample.EFCore.Controllers
 {
@@ -18,6 +18,16 @@ namespace Sample.EFCore.Controllers
         public SampleController(IServiceProvider sp) 
             : base(sp, authorize:sp.GetService<IOptions<TestSettings>>().Value.UseAuthorize)
         {
+        }
+
+        /// <summary>
+        /// Override any settings; PageSize, MaxExpansionDepth, ...
+        /// </summary>
+        /// <returns></returns>
+        [EnableQuery(PageSize = 50, MaxExpansionDepth = 3)]
+        public override Task<IActionResult> Get()
+        {
+            return base.Get();
         }
 
         /// <summary>

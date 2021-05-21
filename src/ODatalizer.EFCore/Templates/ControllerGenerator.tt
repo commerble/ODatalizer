@@ -54,7 +54,7 @@ namespace <#= Namespace #>
             _authorization = authorization;
         }
 
-        [EnableQuery(PageSize = <#= PageSize #>)]
+        [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
         [ODataRoute("<#= entitySetName #>", RouteName = RouteName)]
         <# if(Authorize) { #>
         public async Task<IActionResult> Get()
@@ -81,7 +81,7 @@ namespace <#= Namespace #>
             return Ok(_db.<#= entitySetName #>);
         }
 
-        [EnableQuery(PageSize = <#= PageSize #>)]
+        [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
         [ODataRoute("<#= entitySetName #>(<#= keysNameBraceComma #>)", RouteName = RouteName)]
         public async Task<IActionResult> GetOne(<#= keysTypeNameComma #>)
         {
