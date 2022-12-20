@@ -42,7 +42,7 @@ namespace Sample.EFCore
                 connection.Open();
                 services.AddDbContext<SampleDbContext>(opt =>
                      opt.UseSqlite(connection)
-                        .UseLazyLoadingProxies()
+                        //.UseLazyLoadingProxies()
                         .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
             }
             else
@@ -77,8 +77,16 @@ namespace Sample.EFCore
             }
 
             services.AddSingleton<IAuthorizationHandler, SampleAuthorizationHandler>();
+
+            var ep = new ODatalizerEndpoint(
+                            db: services.BuildServiceProvider().GetRequiredService<SampleDbContext>(),
+                            routeName: "Sample",
+                            routePrefix: "sample",
+                            controller: nameof(SampleController),
+                            authorize: TestSettings.UseAuthorize,
+                            @namespace: TestSettings.Namespace);
+
             services.AddODatalizer();
-            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -115,7 +123,6 @@ namespace Sample.EFCore
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapODatalizer(ep);
                 endpoints.MapControllers();
             });
         }

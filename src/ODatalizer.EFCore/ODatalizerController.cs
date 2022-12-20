@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Extensions;
+﻿using Microsoft.AspNetCore.OData.Extensions;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -14,6 +14,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Deltas;
 
 namespace ODatalizer.EFCore
 {
@@ -42,16 +44,16 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-                return BadRequest("Invalid URI Path");
+            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
+            //    return BadRequest("Invalid URI Path");
 
             try
             {
-                await _visitor.VisitAsync(odataPath.Path);
+                await _visitor.VisitAsync(odataPath);
             }
             catch (NullReferenceException nrex)
             {
-                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index} of {@Template}", Request.Path, _visitor.Index, odataPath.PathTemplate);
+                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index}", Request.Path, _visitor.Index);
                 return NotFound();
             }
             catch (NotSupportedException)
@@ -85,16 +87,16 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-                return BadRequest("Invalid URI Path");
+            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
+            //    return BadRequest("Invalid URI Path");
 
             try
             {
-                await _visitor.VisitAsync(odataPath.Path);
+                await _visitor.VisitAsync(odataPath);
             }
             catch (NullReferenceException nrex)
             {
-                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index} of {@Template}", Request.Path, _visitor.Index, odataPath.PathTemplate);
+                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index}", Request.Path, _visitor.Index);
                 return NotFound();
             }
             catch (NotSupportedException)
@@ -144,16 +146,16 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-                return BadRequest("Invalid URI Path");
+            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
+            //    return BadRequest("Invalid URI Path");
 
             try
             {
-                await _visitor.VisitAsync(odataPath.Path);
+                await _visitor.VisitAsync(odataPath);
             }
             catch (NullReferenceException nrex)
             {
-                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index} of {@Template}", Request.Path, _visitor.Index, odataPath.PathTemplate);
+                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index} of", Request.Path, _visitor.Index);
                 return NotFound();
             }
             catch (NotSupportedException)
@@ -186,7 +188,7 @@ namespace ODatalizer.EFCore
                 return BadRequest(this.CreateSerializableErrorFromModelState());
 
 
-            if (odataPath.Path.LastSegment is PropertySegment || odataPath.Path.LastSegment is ValueSegment)
+            if (odataPath.LastSegment is PropertySegment || odataPath.LastSegment is ValueSegment)
             {
                 _visitor.PropertySetter.Invoke(result.Model);
             }
@@ -205,16 +207,16 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-                return BadRequest("Invalid URI Path");
+            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
+            //    return BadRequest("Invalid URI Path");
 
             try
             {
-                await _visitor.VisitAsync(odataPath.Path);
+                await _visitor.VisitAsync(odataPath);
             }
             catch (NullReferenceException nrex)
             {
-                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index} of {@Template}", Request.Path, _visitor.Index, odataPath.PathTemplate);
+                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index}", Request.Path, _visitor.Index);
                 return NotFound();
             }
             catch (NotSupportedException)
@@ -258,16 +260,16 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-                return BadRequest("Invalid URI Path");
+            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
+            //    return BadRequest("Invalid URI Path");
 
             try
             {
-                await _visitor.VisitAsync(odataPath.Path);
+                await _visitor.VisitAsync(odataPath);
             }
             catch (NullReferenceException nrex)
             {
-                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index} of {@Template}", Request.Path, _visitor.Index, odataPath.PathTemplate);
+                _logger.LogInformation(ODatalizerLogEvents.DynamicVisitorNullReferenced, nrex, "Null on {@Path} at {@Index}", Request.Path, _visitor.Index);
                 return NotFound();
             }
             catch (NotSupportedException)

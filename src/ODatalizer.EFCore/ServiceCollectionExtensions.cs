@@ -1,15 +1,44 @@
-﻿using Microsoft.AspNet.OData.Extensions;
+﻿using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.OData.Batch;
+using Microsoft.AspNetCore.OData.NewtonsoftJson;
 using Microsoft.Extensions.DependencyInjection;
+using ODatalizer.Batch;
 using ODatalizer.EFCore.Builders;
+using ODatalizer.EFCore.Routing.Conventions;
 
 namespace ODatalizer.EFCore
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddODatalizer(this IServiceCollection services)
+        public static void AddODatalizer(this IServiceCollection services, params ODatalizerEndpoint[] endpoints)
         {
             services.AddSingleton<ControllerBuilder>();
-            services.AddOData();
+            services.AddControllers()
+                .AddNewtonsoftJson(opt =>
+                {
+                    opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                })
+                .AddOData(opt =>
+                {
+                    opt
+                        .Select()
+                        .Expand()
+                        .Filter()
+                        .OrderBy()
+                        .SetMaxTop(ODatalizerEndpoint.DefaultPageSize)
+                        .Count()
+                        .SkipToken()
+                        .EnableQueryFeatures();
+                    foreach (var ep in endpoints)
+                    {
+                        opt.AddRouteComponents(ep.RoutePrefix, ep.EdmModel, services =>
+                        {
+                            services.AddSingleton<ODataBatchHandler, ODatalizerBatchHandler>();
+                        });
+                    }
+                })
+                .AddODataNewtonsoftJson();
+                
         }
     }
 }

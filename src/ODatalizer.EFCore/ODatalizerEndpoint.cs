@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.Edm;
 using ODatalizer.EFCore.Builders;
+using System;
 
 namespace ODatalizer.EFCore
 {
@@ -34,4 +36,12 @@ namespace ODatalizer.EFCore
             EdmModel = EdmBuilder.Build(db);
         }
     }
+
+    public class ODatalizerEndpoint<TDbContext> : ODatalizerEndpoint where TDbContext : DbContext
+    {
+        public ODatalizerEndpoint(IServiceProvider sp, string routeName = null, string routePrefix = null, string controller = null, string @namespace = null, bool authorize = false) : base(sp.GetRequiredService<TDbContext>(), routeName, routePrefix, controller, @namespace, authorize)
+        {
+        }
+    }
+
 }
