@@ -21,6 +21,7 @@ namespace Sample.EFCore.Data
         public DbSet<ProductCategoryRelation> ProductCategoryRelations { get; set; }
         public DbSet<CampaignProductRelation> CampaignProductRelations { get; set; }
         public DbSet<CampaignCategoryRelation> CampaignCategoryRelations { get; set; }
+        public DbSet<Holiday> Holidays { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -116,6 +117,9 @@ namespace Sample.EFCore.Data
                             .HasOne(o => o.Campaign)
                             .WithMany(o => o.CategoryRelations)
                             .HasForeignKey(o => o.CampaignId);
+
+            modelBuilder.Entity<Holiday>()
+                            .HasKey(o => o.Date);
 
             base.OnModelCreating(modelBuilder);
         }

@@ -10,8 +10,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ODatalizer.EFCore;
+using Sample.EFCore.Binders;
 using Sample.EFCore.Controllers;
 using Sample.EFCore.Data;
+using System;
 
 namespace Sample.EFCore
 {
@@ -78,7 +80,7 @@ namespace Sample.EFCore
 
             services.AddSingleton<IAuthorizationHandler, SampleAuthorizationHandler>();
             services.AddODatalizer();
-            services.AddControllers();
+            services.AddControllers(options => options.ModelBinderProviders.Insert(0, new DateTimeBinderProvider()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
