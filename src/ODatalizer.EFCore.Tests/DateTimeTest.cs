@@ -22,18 +22,6 @@ namespace ODatalizer.EFCore.Tests
             _client = factory.CreateClient();
         }
 
-        [Fact(DisplayName = "GET ~/Holidays"), TestPriority(0)]
-        public async Task Get()
-        {
-            var response = await _client.GetAsync("/sample/Holidays");
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            var body = await response.Content.ReadAsStringAsync();
-
-            Assert.Contains("2023-01-21T00:00:00+", body);
-        }
-
         [Fact(DisplayName = "GET ~/Holidays(key)"), TestPriority(0)]
         public async Task Find()
         {

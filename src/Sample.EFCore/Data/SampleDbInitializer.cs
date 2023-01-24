@@ -42,8 +42,8 @@ namespace Sample.EFCore.Data
             db.ProductCategoryRelations.Add(new ProductCategoryRelation { ProductId = 1, CategoryId = 1 });
             db.SaveChanges();
 
-            db.Holidays.Add(new Holiday { Date = DateTime.Parse("2023-01-21"), Name = "Sat" });
-            db.Holidays.Add(new Holiday { Date = DateTime.Parse("2023-01-22"), Name = "Sun" });
+            db.Holidays.Add(new Holiday { Date = DateTimeOffset.Parse("2023-01-21T00:00:00+09:00").LocalDateTime, Name = "Sat" });
+            db.Holidays.Add(new Holiday { Date = DateTimeOffset.Parse("2023-01-22T00:00:00+09:00").LocalDateTime, Name = "Sun" });
             db.SaveChanges();
         }
     }
