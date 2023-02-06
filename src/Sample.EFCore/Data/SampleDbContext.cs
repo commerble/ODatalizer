@@ -22,6 +22,7 @@ namespace Sample.EFCore.Data
         public DbSet<CampaignProductRelation> CampaignProductRelations { get; set; }
         public DbSet<CampaignCategoryRelation> CampaignCategoryRelations { get; set; }
         public DbSet<Holiday> Holidays { get; set; }
+        public DbSet<Favorite> Favorites { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -120,6 +121,9 @@ namespace Sample.EFCore.Data
 
             modelBuilder.Entity<Holiday>()
                             .HasKey(o => o.Date);
+
+            modelBuilder.Entity<Favorite>()
+                            .HasKey(o => new { o.UserId, o.ProductId });
 
             base.OnModelCreating(modelBuilder);
         }

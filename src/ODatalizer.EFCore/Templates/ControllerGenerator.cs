@@ -147,12 +147,14 @@ namespace ");
             }
         ");
  } 
-            this.Write("\n            var entity = await _db.");
+            this.Write("\n            var entity = await((IQueryable<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(">)_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
-                    "   return Ok(entity);\n        }\n\n        [ODataRoute(\"");
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(")).FirstOrDefaultAsync();\n\n            if (entity == null)\n                return" +
+                    " NotFound();\n\n            return Ok(entity);\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post([FromBod" +
                     "y]");
@@ -211,11 +213,13 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keys.Select(key => key.Name + "0" + " != entity." + key.Name).Join(" || ")));
             this.Write(")\n                return BadRequest();\n        \n            if (!ModelState.IsVal" +
                     "id)\n                return BadRequest(this.CreateSerializableErrorFromModelState" +
-                    "());\n\n            var original = await _db.");
+                    "());\n\n            var original = await ((IQueryable<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(">)_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(@");
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(@")).FirstOrDefaultAsync();
 
             if (original == null)
                 return NotFound();
@@ -258,13 +262,15 @@ namespace ");
             }
         ");
  } 
-            this.Write("\n            var original = await _db.");
+            this.Write("\n            var original = await ((IQueryable<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(">)_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n\n            if (original == null)\n                return NotFound();\n\n       " +
-                    "     delta.Patch(original);\n\n            await _db.SaveChangesAsync();\n\n        " +
-                    "    return NoContent();\n        }\n\n        [ODataRoute(\"");
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(")).FirstOrDefaultAsync();\n\n            if (original == null)\n                retu" +
+                    "rn NotFound();\n\n            delta.Patch(original);\n\n            await _db.SaveCh" +
+                    "angesAsync();\n\n            return NoContent();\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
@@ -289,12 +295,14 @@ namespace ");
             }
         ");
  } 
-            this.Write("\n            var entity = await _db.");
+            this.Write("\n            var entity = await ((IQueryable<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(">)_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
-                    "   _db.");
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(")).FirstOrDefaultAsync();\n\n            if (entity == null)\n                return" +
+                    " NotFound();\n\n            _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            return N" +
                     "oContent();\n        }\n\n    ");
@@ -346,12 +354,14 @@ namespace ");
             }
         ");
  } 
-            this.Write("\n            var entity = await _db.");
+            this.Write("\n            var entity = await ((IQueryable<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(">)_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
-                    "   return Ok(entity.");
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(")).FirstOrDefaultAsync();\n\n            if (entity == null)\n                return" +
+                    " NotFound();\n\n            return Ok(entity.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(");\n        }\n\n        [ODataRoute(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
@@ -387,15 +397,21 @@ namespace ");
             this.Write("\n            var keys = Request.GetKeysFromUri(uri);\n            var key = keys.F" +
                     "irstOrDefault();\n\n            if (key == null)\n                return BadRequest" +
                     "(this.CreateSerializableErrorFromModelState());\n\n            var entity = await " +
-                    "_db.Set<");
+                    "((IQueryable<");
             this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write(">().FindAsync(key.Values.ToArray());\n\n            if (entity == null)\n           " +
-                    "     return NotFound();\n\n            var root = await _db.");
+            this.Write(">)_db.Set<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
+            this.Write(">().Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture("o => " + string.Join(" && ", navKeys.Select(key => "o." + key.Name + " == (" + Type(key.Type) + ")key[\"" + key.Name + "\"]"))));
+            this.Write(")).FirstOrDefaultAsync();\n\n            if (entity == null)\n                return" +
+                    " NotFound();\n\n            var root = await ((IQueryable<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(">)_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n\n            if (root == null)\n                return NotFound();\n\n           " +
-                    " root.");
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(")).FirstOrDefaultAsync();\n\n            if (root == null)\n                return N" +
+                    "otFound();\n\n            root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n\n            return Ok()" +
                     ";\n        }\n\n        [ODataRoute(\"");
@@ -433,12 +449,14 @@ namespace ");
             }
         ");
  } 
-            this.Write("\n            var root = await _db.");
+            this.Write("\n            var root = await ((IQueryable<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(">)_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n\n            if (root == null)\n                return NotFound();\n\n           " +
-                    " var entity = root.");
+            this.Write(".Where(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
+            this.Write(")).FirstOrDefaultAsync();\n\n            if (root == null)\n                return N" +
+                    "otFound();\n\n            var entity = root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(".Where(");
             this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameCondition));

@@ -103,7 +103,7 @@ namespace <#= Namespace #>
                     return Unauthorized();
             }
         <# } #>
-            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            var entity = await((IQueryable<<#= entityName #>>)_db.<#= entitySetName #>.Where(<#= keysNameCondition #>)).FirstOrDefaultAsync();
 
             if (entity == null)
                 return NotFound();
@@ -167,7 +167,7 @@ namespace <#= Namespace #>
             if (!ModelState.IsValid)
                 return BadRequest(this.CreateSerializableErrorFromModelState());
 
-            var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            var original = await ((IQueryable<<#= entityName #>>)_db.<#= entitySetName #>.Where(<#= keysNameCondition #>)).FirstOrDefaultAsync();
 
             if (original == null)
                 return NotFound();
@@ -203,7 +203,7 @@ namespace <#= Namespace #>
                     return Unauthorized();
             }
         <# } #>
-            var original = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            var original = await ((IQueryable<<#= entityName #>>)_db.<#= entitySetName #>.Where(<#= keysNameCondition #>)).FirstOrDefaultAsync();
 
             if (original == null)
                 return NotFound();
@@ -235,7 +235,7 @@ namespace <#= Namespace #>
                     return Unauthorized();
             }
         <# } #>
-            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            var entity = await ((IQueryable<<#= entityName #>>)_db.<#= entitySetName #>.Where(<#= keysNameCondition #>)).FirstOrDefaultAsync();
 
             if (entity == null)
                 return NotFound();
@@ -284,7 +284,7 @@ namespace <#= Namespace #>
                     return Unauthorized();
             }
         <# } #>
-            var entity = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            var entity = await ((IQueryable<<#= entityName #>>)_db.<#= entitySetName #>.Where(<#= keysNameCondition #>)).FirstOrDefaultAsync();
 
             if (entity == null)
                 return NotFound();
@@ -319,12 +319,12 @@ namespace <#= Namespace #>
             if (key == null)
                 return BadRequest(this.CreateSerializableErrorFromModelState());
 
-            var entity = await _db.Set<<#= navEntityName #>>().FindAsync(key.Values.ToArray());
+            var entity = await ((IQueryable<<#= navEntityName #>>)_db.Set<<#= navEntityName #>>().Where(<#= "o => " + string.Join(" && ", navKeys.Select(key => "o." + key.Name + " == (" + Type(key.Type) + ")key[\"" + key.Name + "\"]")) #>)).FirstOrDefaultAsync();
 
             if (entity == null)
                 return NotFound();
 
-            var root = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            var root = await ((IQueryable<<#= entityName #>>)_db.<#= entitySetName #>.Where(<#= keysNameCondition #>)).FirstOrDefaultAsync();
 
             if (root == null)
                 return NotFound();
@@ -357,7 +357,7 @@ namespace <#= Namespace #>
                     return Unauthorized();
             }
         <# } #>
-            var root = await _db.<#= entitySetName #>.FindAsync(<#= keysNameComma #>);
+            var root = await ((IQueryable<<#= entityName #>>)_db.<#= entitySetName #>.Where(<#= keysNameCondition #>)).FirstOrDefaultAsync();
 
             if (root == null)
                 return NotFound();
