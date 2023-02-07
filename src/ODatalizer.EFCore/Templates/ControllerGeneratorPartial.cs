@@ -86,6 +86,10 @@ namespace ODatalizer.EFCore.Templates
         public string Type(string fullName, string propName)
         {
             var type = DbContext.GetType().Assembly.GetType(fullName, false)?.GetProperty(propName)?.PropertyType.Name;
+            if (type == "Int32")
+                return "int";
+            if (type == "Int64")
+                return "long";
             if (type != null)
                 return type;
 

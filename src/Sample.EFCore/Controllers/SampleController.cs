@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using ODatalizer;
 using ODatalizer.EFCore;
 using Microsoft.AspNet.OData;
+using Microsoft.AspNetCore.Routing;
 
 namespace Sample.EFCore.Controllers
 {
