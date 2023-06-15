@@ -5,12 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using ODatalizer.Batch;
 using ODatalizer.EFCore.Builders;
 using ODatalizer.EFCore.Routing.Conventions;
+using System;
 
 namespace ODatalizer.EFCore
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddODatalizer(this IServiceCollection services, params ODatalizerEndpoint[] endpoints)
+        public static void AddODatalizer(this IServiceCollection services, Func<IServiceProvider, ODatalizerEndpoint[]> endpointsFactory)
         {
             services.AddSingleton<ControllerBuilder>();
             services.AddControllers()
@@ -18,8 +19,9 @@ namespace ODatalizer.EFCore
                 {
                     opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 })
-                .AddOData(opt =>
+                .AddOData((opt, sp) =>
                 {
+                    var endpoints = endpointsFactory.Invoke(sp);
                     opt
                         .Select()
                         .Expand()

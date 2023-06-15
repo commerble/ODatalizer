@@ -78,15 +78,18 @@ namespace Sample.EFCore
 
             services.AddSingleton<IAuthorizationHandler, SampleAuthorizationHandler>();
 
-            var ep = new ODatalizerEndpoint(
-                            db: services.BuildServiceProvider().GetRequiredService<SampleDbContext>(),
+            services.AddODatalizer(sp =>
+            {
+                var ep = new ODatalizerEndpoint(
+                            db: sp.GetRequiredService<SampleDbContext>(),
                             routeName: "Sample",
                             routePrefix: "sample",
                             controller: nameof(SampleController),
                             authorize: TestSettings.UseAuthorize,
                             @namespace: TestSettings.Namespace);
 
-            services.AddODatalizer();
+                return new[] { ep }; 
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
