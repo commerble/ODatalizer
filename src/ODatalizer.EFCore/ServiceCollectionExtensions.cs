@@ -21,7 +21,7 @@ namespace ODatalizer.EFCore
                 })
                 .AddOData((opt, sp) =>
                 {
-                    var endpoints = endpointsFactory.Invoke(sp);
+                    var endpoints = endpointsFactory.Invoke(sp.CreateScope().ServiceProvider);
                     opt
                         .Select()
                         .Expand()
