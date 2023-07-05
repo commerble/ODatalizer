@@ -45,6 +45,9 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
+            if (odataPath == null)
+                return NotFound();
+
             if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
                 return BadRequest("Invalid URI Path");
 
@@ -87,6 +90,9 @@ namespace ODatalizer.EFCore
         public virtual async Task<IActionResult> Post()
         {
             var odataPath = Request.ODataFeature().Path;
+
+            if (odataPath == null)
+                return NotFound();
 
             if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
                 return BadRequest("Invalid URI Path");
@@ -146,6 +152,9 @@ namespace ODatalizer.EFCore
         public virtual async Task<IActionResult> Put()
         {
             var odataPath = Request.ODataFeature().Path;
+
+            if (odataPath == null)
+                return NotFound();
 
             if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
                 return BadRequest("Invalid URI Path");
@@ -208,6 +217,9 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
+            if (odataPath == null)
+                return NotFound();
+
             if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
                 return BadRequest("Invalid URI Path");
 
@@ -262,6 +274,9 @@ namespace ODatalizer.EFCore
         public virtual async Task<IActionResult> Delete()
         {
             var odataPath = Request.ODataFeature().Path;
+
+            if (odataPath == null)
+                return NotFound();
 
             if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
                 return BadRequest("Invalid URI Path");

@@ -70,7 +70,7 @@ namespace ");
         var entityName = entitySet.EntityType().FullTypeName();
         var keysTypeNameComma = keys.Select(key => Type(entityName, key.Name) + " " + key.Name + "0").Join(", ");
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
-        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(", ");
+        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
         
 
@@ -486,7 +486,7 @@ namespace ");
         /// <summary>
         /// The string builder that generation-time code is using to assemble generated output
         /// </summary>
-        protected System.Text.StringBuilder GenerationEnvironment
+        public System.Text.StringBuilder GenerationEnvironment
         {
             get
             {

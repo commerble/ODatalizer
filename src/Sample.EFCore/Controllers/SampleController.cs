@@ -57,7 +57,7 @@ namespace Sample.EFCore.Controllers
             return Ok();
         }
 
-        [ODataRoute("Holidays({Date0})/Name/$value", RouteName = "Sample")]
+        [HttpGet("sample/Holidays({Date0})/Name/$value")]
         public async Task<IActionResult> GetHolidayNameValue(DateTime Date0)
         {
             var entity = await DbContext.Holidays.FindAsync(Date0);
