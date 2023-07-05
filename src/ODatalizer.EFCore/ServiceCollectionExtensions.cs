@@ -1,15 +1,52 @@
-﻿using Microsoft.AspNet.OData.Extensions;
+﻿using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.OData.Batch;
+using Microsoft.AspNetCore.OData.NewtonsoftJson;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using ODatalizer.Batch;
 using ODatalizer.EFCore.Builders;
+using ODatalizer.EFCore.Routing;
+using System;
 
 namespace ODatalizer.EFCore
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddODatalizer(this IServiceCollection services)
+        public static void AddODatalizer(this IServiceCollection services, Func<IServiceProvider, ODatalizerEndpoint[]> endpointsFactory)
         {
             services.AddSingleton<ControllerBuilder>();
-            services.AddOData();
+            services.AddControllers()
+                .AddNewtonsoftJson(opt =>
+                {
+                    opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                })
+                .AddOData((opt, sp) =>
+                {
+                    var endpoints = endpointsFactory.Invoke(sp.CreateScope().ServiceProvider);
+                    opt
+                        .Select()
+                        .Expand()
+                        .Filter()
+                        .OrderBy()
+                        .SetMaxTop(ODatalizerEndpoint.DefaultPageSize)
+                        .Count()
+                        .SkipToken()
+                        .EnableQueryFeatures();
+                    foreach (var ep in endpoints)
+                    {
+                        opt.AddRouteComponents(ep.RoutePrefix, ep.EdmModel, services =>
+                        {
+                            services.AddSingleton<ODataBatchHandler, ODatalizerBatchHandler>();
+                            services.AddSingleton(new ODatalizerControllerNameAccessor(ep.ODatalizerController.Replace("Controller", string.Empty)));
+                        });
+                    }
+                })
+                .AddODataNewtonsoftJson();
+
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IApplicationModelProvider, ODatalizerRoutingApplciationModelProvider>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ODatalizerRoutingMatcherPolicy>());
         }
     }
 }

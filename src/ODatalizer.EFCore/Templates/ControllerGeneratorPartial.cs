@@ -19,6 +19,9 @@ namespace ODatalizer.EFCore.Templates
 
         public string RouteNameValue => RouteName != null ? '"' + RouteName + '"' : "null";
 
+        private readonly string _routePrefix;
+        public string RoutePrefix => string.IsNullOrEmpty(_routePrefix) ? string.Empty : $"{_routePrefix}/";
+
         private readonly string _namespace = null;
         public string Namespace {
             get {
@@ -45,6 +48,7 @@ namespace ODatalizer.EFCore.Templates
             MaxExpansionDepth = ep.MaxExpansionDepth;
             Authorize = ep.Authorize;
             _namespace = ep.Namespace;
+            _routePrefix = ep.RoutePrefix;
         }
 
         public static ControllerGenerator Create(ODatalizerEndpoint ep)

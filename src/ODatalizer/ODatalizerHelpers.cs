@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNet.OData.Extensions;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Extensions;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 using System;
-using System.Linq;
-using Microsoft.OData.Edm;
 using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNet.OData;
-using Microsoft.OData;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ODatalizer
 {
@@ -16,8 +15,7 @@ namespace ODatalizer
     {
         public static string GetServiceRoot(this HttpRequest request)
         {
-            var urlHelper = request.GetUrlHelper();
-            return urlHelper.CreateODataLink();
+            return request.CreateODataLink();
         }
 
         public static IEnumerable<IReadOnlyDictionary<string, object>> GetKeysFromUri(this HttpRequest request, Uri uri)
@@ -27,10 +25,11 @@ namespace ODatalizer
 
             var serviceRoot = GetServiceRoot(request);
             var serviceRootUri = serviceRoot.EndsWith("/") ? new Uri(serviceRoot) : new Uri(serviceRoot + "/");
-            var pathHandler = request.GetPathHandler();
-            var odataPath = pathHandler.Parse(serviceRoot, serviceRootUri.MakeRelativeUri(uri).ToString(), request.GetRequestContainer());
+            var model = request.GetModel();
+            var parser = new ODataUriParser(model, serviceRootUri, uri);
+            var odataPath = parser.ParsePath();
 
-            foreach (var keySegment in odataPath.Segments.OfType<KeySegment>())
+            foreach (var keySegment in odataPath.OfType<KeySegment>())
             {
                 yield return keySegment.Keys.ToDictionary(kv => kv.Key, kv => kv.Value);
             }
@@ -43,10 +42,11 @@ namespace ODatalizer
 
             var serviceRoot = GetServiceRoot(request);
             var serviceRootUri = serviceRoot.EndsWith("/") ? new Uri(serviceRoot) : new Uri(serviceRoot + "/");
-            var pathHandler = request.GetPathHandler();
-            var odataPath = pathHandler.Parse(serviceRoot, serviceRootUri.MakeRelativeUri(uri).ToString(), request.GetRequestContainer());
-            var entitySetSegment = odataPath.Segments.OfType<EntitySetSegment>().First();
-            var keySegment = odataPath.Segments.OfType<KeySegment>().First();
+            var model = request.GetModel();
+            var parser = new ODataUriParser(model, serviceRootUri, uri);
+            var odataPath = parser.ParsePath();
+            var entitySetSegment = odataPath.OfType<EntitySetSegment>().First();
+            var keySegment = odataPath.OfType<KeySegment>().First();
 
             return (entitySetSegment.EntitySet.Name, keySegment.Keys.ToDictionary(kv => kv.Key, kv => kv.Value));
         }
@@ -55,8 +55,6 @@ namespace ODatalizer
             => ResolveResourceUris(request, entitySetName, keys.Select(_ => new[] { _ }));
         public static IEnumerable<Uri> ResolveResourceUris(this HttpRequest request, string entitySetName, IEnumerable<IEnumerable<KeyValuePair<string, object>>> keys)
         {
-            var urlHelper = request.GetUrlHelper();
-
             var edm = request.GetModel();
             var entitySet = edm.EntityContainer.FindEntitySet(entitySetName);
             var entitySetSegment = new EntitySetSegment(entitySet);
@@ -64,7 +62,7 @@ namespace ODatalizer
             foreach (var key in keys)
             {
                 var keySegment = new KeySegment(key, entitySet.EntityType(), null);
-                var uri = urlHelper.CreateODataLink(entitySetSegment, keySegment);
+                var uri = request.CreateODataLink(entitySetSegment, keySegment);
                 yield return new Uri(uri);
             }
         }
@@ -97,11 +95,10 @@ namespace ODatalizer
                 }).ToList();
 
                 var entitySetSegment = new EntitySetSegment(entitySet);
-                var urlHelper = request.GetUrlHelper();
 
                 return (values) =>
                     values.Select(o => new KeySegment(keySelectors.Select(f => f(o)), entitySet.EntityType(), null))
-                          .Select(keySegment => new Uri(urlHelper.CreateODataLink(entitySetSegment, keySegment)));
+                          .Select(keySegment => new Uri(request.CreateODataLink(entitySetSegment, keySegment)));
             });
             return resolver;
         }

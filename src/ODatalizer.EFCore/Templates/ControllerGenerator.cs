@@ -41,9 +41,12 @@ namespace ODatalizer.EFCore.Templates
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Extensions;
-using Microsoft.AspNet.OData.Routing;
+using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.OData.Extensions;
+using Microsoft.AspNetCore.OData.Routing;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Deltas;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -67,7 +70,7 @@ namespace ");
         var entityName = entitySet.EntityType().FullTypeName();
         var keysTypeNameComma = keys.Select(key => Type(entityName, key.Name) + " " + key.Name + "0").Join(", ");
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
-        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(", ");
+        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
         
 
@@ -92,9 +95,10 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
             this.Write(", MaxExpansionDepth = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
-            this.Write(")]\n        [ODataRoute(\"");
+            this.Write(")]\n        [HttpGet(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("\", RouteName = RouteName)]\n        ");
+            this.Write("\")]\n        ");
  if(Authorize) { 
             this.Write("\n        public async Task<IActionResult> Get()\n        {\n            var resourc" +
                     "e = new ODatalizerAuthorizationInfo\n            {\n                AccessedResour" +
@@ -122,11 +126,12 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
             this.Write(", MaxExpansionDepth = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
-            this.Write(")]\n        [ODataRoute(\"");
+            this.Write(")]\n        [HttpGet(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> GetOne(");
+            this.Write(")\")]\n        public async Task<IActionResult> GetOne(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(")\n        {\n        ");
  if(Authorize) { 
@@ -152,10 +157,10 @@ namespace ");
             this.Write(".FirstOrDefaultAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
-                    "   return Ok(entity);\n        }\n\n        [ODataRoute(\"");
+                    "   return Ok(entity);\n        }\n\n        [HttpPost(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("\", RouteName = RouteName)]\n        public async Task<IActionResult> Post([FromBod" +
-                    "y]");
+            this.Write("\")]\n        public async Task<IActionResult> Post([FromBody]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
             this.Write(" entity)\n        {\n        ");
  if(Authorize) { 
@@ -180,11 +185,12 @@ namespace ");
                     "teSerializableErrorFromModelState());\n\n            _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n            \n           " +
-                    " return Created(entity);\n        }\n\n        [ODataRoute(\"");
+                    " return Created(entity);\n        }\n\n        [HttpPut(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Put(");
+            this.Write(")\")]\n        public async Task<IActionResult> Put(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", [FromBody]");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
@@ -231,11 +237,12 @@ namespace ");
             return NoContent();
         }
 
-        [ODataRoute(""");
+        [HttpPatch(""");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Patch(");
+            this.Write(")\")]\n        public async Task<IActionResult> Patch(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(", [FromBody]Delta<");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
@@ -264,11 +271,12 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (original == null)\n                return NotFound();\n\n       " +
                     "     delta.Patch(original);\n\n            await _db.SaveChangesAsync();\n\n        " +
-                    "    return NoContent();\n        }\n\n        [ODataRoute(\"");
+                    "    return NoContent();\n        }\n\n        [HttpDelete(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
-            this.Write(")\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete(");
+            this.Write(")\")]\n        public async Task<IActionResult> Delete(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
             this.Write(")\n        {\n        ");
  if(Authorize) { 
@@ -315,13 +323,14 @@ namespace ");
     
             this.Write("\n        [EnableQueryRef(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
-            this.Write(")]\n        [ODataRoute(\"");
+            this.Write(")]\n        [HttpGet(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("/$ref\", RouteName = RouteName)]\n        public async Task<IActionResult> Get");
+            this.Write("/$ref\")]\n        public async Task<IActionResult> Get");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("Ref(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -353,13 +362,14 @@ namespace ");
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
                     "   return Ok(entity.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(");\n        }\n\n        [ODataRoute(\"");
+            this.Write(");\n        }\n\n        [HttpPost(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("/$ref\", RouteName = RouteName)]\n        public async Task<IActionResult> Post");
+            this.Write("/$ref\")]\n        public async Task<IActionResult> Post");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("Ref(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -400,7 +410,8 @@ namespace ");
                     " root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n\n            return Ok()" +
-                    ";\n        }\n\n        [ODataRoute(\"");
+                    ";\n        }\n\n        [HttpDelete(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
@@ -408,7 +419,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameBraceComma));
-            this.Write(")/$ref\", RouteName = RouteName)]\n        public async Task<IActionResult> Delete");
+            this.Write(")/$ref\")]\n        public async Task<IActionResult> Delete");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("Ref(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
@@ -475,7 +486,7 @@ namespace ");
         /// <summary>
         /// The string builder that generation-time code is using to assemble generated output
         /// </summary>
-        protected System.Text.StringBuilder GenerationEnvironment
+        public System.Text.StringBuilder GenerationEnvironment
         {
             get
             {

@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNet.OData.Builder;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using System;
 using System.Linq;
 

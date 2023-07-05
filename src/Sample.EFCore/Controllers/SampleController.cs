@@ -3,14 +3,12 @@ using Sample.EFCore.Data;
 using Sample.EFCore.Entities;
 using System.Threading.Tasks;
 using System.Linq;
-using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ODatalizer;
 using ODatalizer.EFCore;
-using Microsoft.AspNet.OData;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace Sample.EFCore.Controllers
 {
@@ -38,7 +36,7 @@ namespace Sample.EFCore.Controllers
         /// <param name="uri"></param>
         /// <returns></returns>
         [EnableQueryRef(PageSize = 100)]
-        [ODataRoute("Products({id})/Categories/$ref", RouteName = "Sample")]
+        [HttpPost("sample/Products({id})/Categories/$ref")]
         public async Task<IActionResult> PostProductCategoriesRef(long id, [FromBody] Uri uri)
         {
             var keys = Request.GetKeysFromUri(uri);
@@ -59,7 +57,7 @@ namespace Sample.EFCore.Controllers
             return Ok();
         }
 
-        [ODataRoute("Holidays({Date0})/Name/$value", RouteName = "Sample")]
+        [HttpGet("sample/Holidays({Date0})/Name/$value")]
         public async Task<IActionResult> GetHolidayNameValue(DateTime Date0)
         {
             var entity = await DbContext.Holidays.FindAsync(Date0);

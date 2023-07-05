@@ -44,7 +44,7 @@ namespace Sample.EFCore
                 connection.Open();
                 services.AddDbContext<SampleDbContext>(opt =>
                      opt.UseSqlite(connection)
-                        .UseLazyLoadingProxies()
+                        //.UseLazyLoadingProxies()
                         .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
             }
             else
@@ -79,7 +79,20 @@ namespace Sample.EFCore
             }
 
             services.AddSingleton<IAuthorizationHandler, SampleAuthorizationHandler>();
-            services.AddODatalizer();
+          
+            services.AddODatalizer(sp =>
+            {
+                var ep = new ODatalizerEndpoint(
+                            db: sp.GetRequiredService<SampleDbContext>(),
+                            routeName: "Sample",
+                            routePrefix: "sample",
+                            controller: nameof(SampleController),
+                            authorize: TestSettings.UseAuthorize,
+                            @namespace: TestSettings.Namespace);
+
+                return new[] { ep }; 
+            });
+          
             services.AddControllers(options => options.ModelBinderProviders.Insert(0, new DateTimeBinderProvider()));
         }
 
@@ -117,7 +130,6 @@ namespace Sample.EFCore
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapODatalizer(ep);
                 endpoints.MapControllers();
             });
         }

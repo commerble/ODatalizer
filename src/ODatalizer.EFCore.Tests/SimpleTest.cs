@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using ODatalizer.EFCore.Tests.Host;
 using Sample.EFCore;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -34,7 +35,11 @@ namespace ODatalizer.EFCore.Tests
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var result = JObject.Parse(await response.Content.ReadAsStringAsync());
+            var json = await response.Content.ReadAsStringAsync();
+
+            Console.WriteLine(json);
+
+            var result = JObject.Parse(json);
 
             var total = (int)result.SelectToken("$['@odata.count']");
             var products = result.SelectTokens("$.value[:]");
