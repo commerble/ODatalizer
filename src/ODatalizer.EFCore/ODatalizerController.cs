@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Deltas;
+using ODatalizer.EFCore.Routing;
 
 namespace ODatalizer.EFCore
 {
@@ -44,8 +45,8 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-            //    return BadRequest("Invalid URI Path");
+            if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
+                return BadRequest("Invalid URI Path");
 
             try
             {
@@ -87,8 +88,8 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-            //    return BadRequest("Invalid URI Path");
+            if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
+                return BadRequest("Invalid URI Path");
 
             try
             {
@@ -146,8 +147,8 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-            //    return BadRequest("Invalid URI Path");
+            if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
+                return BadRequest("Invalid URI Path");
 
             try
             {
@@ -207,8 +208,8 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-            //    return BadRequest("Invalid URI Path");
+            if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
+                return BadRequest("Invalid URI Path");
 
             try
             {
@@ -260,8 +261,8 @@ namespace ODatalizer.EFCore
         {
             var odataPath = Request.ODataFeature().Path;
 
-            //if (odataPath.Segments.Any(segment => segment is Microsoft.AspNet.OData.Routing.UnresolvedPathSegment))
-            //    return BadRequest("Invalid URI Path");
+            if (odataPath.Any(segment => segment is UnrecognizedPathSegment))
+                return BadRequest("Invalid URI Path");
 
             try
             {

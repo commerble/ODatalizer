@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.OData;
+﻿using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.OData;
 using Microsoft.AspNetCore.OData.Batch;
 using Microsoft.AspNetCore.OData.NewtonsoftJson;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ODatalizer.Batch;
 using ODatalizer.EFCore.Builders;
-using ODatalizer.EFCore.Routing.Conventions;
+using ODatalizer.EFCore.Routing;
 using System;
 
 namespace ODatalizer.EFCore
@@ -36,11 +39,14 @@ namespace ODatalizer.EFCore
                         opt.AddRouteComponents(ep.RoutePrefix, ep.EdmModel, services =>
                         {
                             services.AddSingleton<ODataBatchHandler, ODatalizerBatchHandler>();
+                            services.AddSingleton(new ODatalizerControllerNameAccessor(ep.ODatalizerController.Replace("Controller", string.Empty)));
                         });
                     }
                 })
                 .AddODataNewtonsoftJson();
-                
+
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IApplicationModelProvider, ODatalizerRoutingApplciationModelProvider>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ODatalizerRoutingMatcherPolicy>());
         }
     }
 }
