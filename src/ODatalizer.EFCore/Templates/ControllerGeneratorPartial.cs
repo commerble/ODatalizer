@@ -3,6 +3,7 @@ using Microsoft.OData.Edm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace ODatalizer.EFCore.Templates
 {
@@ -84,6 +85,25 @@ namespace ODatalizer.EFCore.Templates
                 return edm;
 
             throw new NotImplementedException();
+        }
+
+        public string Type(string fullName, string propName)
+        {
+            var type = DbContext.GetType().Assembly.GetType(fullName, false)?.GetProperty(propName)?.PropertyType.Name;
+            if (type == "Int32")
+                return "int";
+            if (type == "Int64")
+                return "long";
+            if (type != null)
+                return type;
+
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies()) 
+            {
+                type = asm.GetType(fullName, false)?.GetProperty(propName)?.PropertyType.Name;
+                if (type != null) 
+                    return type;
+            }
+            return null;
         }
 
         public bool IsSkipNavigation(IEdmNavigationPropertyBinding bind)

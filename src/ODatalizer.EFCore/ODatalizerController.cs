@@ -250,7 +250,9 @@ namespace ODatalizer.EFCore
             if (result == null || result.HasError || result.IsModelSet == false || result.Model == null || TryValidateModel(result.Model) == false)
                 return BadRequest(this.CreateSerializableErrorFromModelState());
 
-            type.GetMethod("Patch", BindingFlags.Public | BindingFlags.Instance).Invoke(result.Model, new [] { _visitor.Result });
+            var method = type.GetMethod("Patch", BindingFlags.Public | BindingFlags.Instance, new[] { _visitor.ResultType });
+
+            method.Invoke(result.Model, new[] { _visitor.Result });
 
             await DbContext.SaveChangesAsync();
 

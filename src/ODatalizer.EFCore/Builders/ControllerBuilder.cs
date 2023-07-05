@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ODatalizer.EFCore.Templates;
 using ODatalizer.Extensions;
@@ -35,7 +36,7 @@ namespace ODatalizer.EFCore.Builders
                 return Assembly.LoadFrom(dllPath);
 
             var tree = CSharpSyntaxTree.ParseText(code);
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false && string.IsNullOrEmpty(asm.Location) == false).Distinct();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false && string.IsNullOrEmpty(asm.Location) == false).Concat(new[] { typeof(DbSet<>).Assembly } ).Distinct();
             var comp = CSharpCompilation.Create(
                 assemblyName: @namespace,
                 syntaxTrees: new[] { tree },

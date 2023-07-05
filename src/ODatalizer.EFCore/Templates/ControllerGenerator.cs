@@ -68,10 +68,11 @@ namespace ");
         var keys = entitySet.EntityType().DeclaredKey;
         var controllerName = entitySetName + "Controller";
         var entityName = entitySet.EntityType().FullTypeName();
-        var keysTypeNameComma = keys.Select(key => Type(key.Type) + " " + key.Name + "0").Join(", ");
+        var keysTypeNameComma = keys.Select(key => Type(entityName, key.Name) + " " + key.Name + "0").Join(", ");
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
         var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(", ");
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
+        
 
             this.Write("\n    public partial class ");
             this.Write(this.ToStringHelper.ToStringWithCulture(controllerName));
@@ -153,8 +154,8 @@ namespace ");
  } 
             this.Write("\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(".FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
                     "   return Ok(entity);\n        }\n\n        [HttpPost(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
@@ -218,8 +219,8 @@ namespace ");
                     "id)\n                return BadRequest(this.CreateSerializableErrorFromModelState" +
                     "());\n\n            var original = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(".FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(@");
 
             if (original == null)
@@ -266,8 +267,8 @@ namespace ");
  } 
             this.Write("\n            var original = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(".FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (original == null)\n                return NotFound();\n\n       " +
                     "     delta.Patch(original);\n\n            await _db.SaveChangesAsync();\n\n        " +
                     "    return NoContent();\n        }\n\n        [HttpDelete(\"");
@@ -298,8 +299,8 @@ namespace ");
  } 
             this.Write("\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(".FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
                     "   _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
@@ -356,8 +357,8 @@ namespace ");
  } 
             this.Write("\n            var entity = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(".FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
                     "   return Ok(entity.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
@@ -398,11 +399,13 @@ namespace ");
                     "(this.CreateSerializableErrorFromModelState());\n\n            var entity = await " +
                     "_db.Set<");
             this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write(">().FindAsync(key.Values.ToArray());\n\n            if (entity == null)\n           " +
-                    "     return NotFound();\n\n            var root = await _db.");
+            this.Write(">().FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture("o => " + string.Join(" && ", navKeys.Select(key => "o." + key.Name + " == (" + Type(key.Type) + ")key[\"" + key.Name + "\"]"))));
+            this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
+                    "   var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(".FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (root == null)\n                return NotFound();\n\n           " +
                     " root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
@@ -445,8 +448,8 @@ namespace ");
  } 
             this.Write("\n            var root = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".FindAsync(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(".FirstOrDefaultAsync(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (root == null)\n                return NotFound();\n\n           " +
                     " var entity = root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
