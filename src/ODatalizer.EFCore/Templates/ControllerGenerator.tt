@@ -40,7 +40,9 @@ namespace <#= Namespace #>
         var entityName = entitySet.EntityType().FullTypeName();
         var keysTypeNameComma = keys.Select(key => Type(entityName, key.Name) + " " + key.Name + "0").Join(", ");
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
-        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma1 = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma2 = keys.Select(key => key.Name + "={" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma = keys.Count() > 1 ? keysNameBraceComma2 : keysNameBraceComma1;
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
         
 #>
@@ -85,35 +87,6 @@ namespace <#= Namespace #>
             return Ok(_db.<#= entitySetName #>);
         }
 
-        [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
-        [HttpGet("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
-        public async Task<IActionResult> GetOne(<#= keysTypeNameComma #>)
-        {
-        <# if(Authorize) { #>
-            var resource = new ODatalizerAuthorizationInfo
-            {
-                AccessedResources = {
-                    "<#= entityName #>"
-                }
-            };
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
-
-            if (!authorizationResult.Succeeded)
-            {
-                if (User.Identity.IsAuthenticated)
-                    return Forbid();
-                else
-                    return Unauthorized();
-            }
-        <# } #>
-            var entity = await _db.<#= entitySetName #>.FirstOrDefaultAsync(<#= keysNameCondition #>);
-
-            if (entity == null)
-                return NotFound();
-
-            return Ok(entity);
-        }
-
         [HttpPost("<#= RoutePrefix #><#= entitySetName #>")]
         public async Task<IActionResult> Post([FromBody]<#= entityName #> entity)
         {
@@ -142,6 +115,35 @@ namespace <#= Namespace #>
             await _db.SaveChangesAsync();
             
             return Created(entity);
+        }
+
+        [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
+        [HttpGet("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
+        public async Task<IActionResult> GetOne(<#= keysTypeNameComma #>)
+        {
+        <# if(Authorize) { #>
+            var resource = new ODatalizerAuthorizationInfo
+            {
+                AccessedResources = {
+                    "<#= entityName #>"
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        <# } #>
+            var entity = await _db.<#= entitySetName #>.FirstOrDefaultAsync(<#= keysNameCondition #>);
+
+            if (entity == null)
+                return NotFound();
+
+            return Ok(entity);
         }
 
         [HttpPut("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]

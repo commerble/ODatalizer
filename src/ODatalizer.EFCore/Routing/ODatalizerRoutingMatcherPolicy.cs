@@ -87,13 +87,12 @@ namespace ODatalizer.EFCore.Routing
                         candidates.SetValidity(i, false);
                     }
                 }
-                catch (ODataUnrecognizedPathException ex) 
+                catch (ODataUnrecognizedPathException ex)
                 {
                     odataFeature.RoutePrefix = metadata.Prefix;
                     odataFeature.Model = model;
                     odataFeature.Path = new ODataPath(new UnrecognizedPathSegment());
                 }
-                catch { }
             }
             return Task.CompletedTask;
         }

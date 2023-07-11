@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ApplicationModels;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.OData;
 using Microsoft.AspNetCore.OData.Batch;
 using Microsoft.AspNetCore.OData.NewtonsoftJson;
@@ -7,8 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ODatalizer.Batch;
 using ODatalizer.EFCore.Builders;
+using ODatalizer.EFCore.Converters;
 using ODatalizer.EFCore.Routing;
 using System;
+using System.Collections.Generic;
 
 namespace ODatalizer.EFCore
 {
@@ -47,6 +50,13 @@ namespace ODatalizer.EFCore
 
             services.TryAddEnumerable(ServiceDescriptor.Transient<IApplicationModelProvider, ODatalizerRoutingApplciationModelProvider>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ODatalizerRoutingMatcherPolicy>());
+        }
+    }
+    public static class MvcOptionsExtensions
+    {
+        public static void AddODatalizerOptions(this MvcOptions options)
+        {
+            options.ModelBinderProviders.Insert(0, new ODatalizerModelBinderProvider());
         }
     }
 }

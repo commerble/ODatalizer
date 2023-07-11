@@ -47,6 +47,8 @@ namespace Sample.EFCore.Data
             db.SaveChanges();
 
             db.Favorites.Add(new Favorite { UserId = 1, ProductId = 1 });
+            db.Favorites.Add(new Favorite { UserId = 1, ProductId = 2 });
+            db.Favorites.Add(new Favorite { UserId = 1, ProductId = 3 });
             db.SaveChanges();
         }
     }

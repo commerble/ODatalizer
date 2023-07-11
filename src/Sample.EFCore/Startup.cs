@@ -3,15 +3,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.OData;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using ODatalizer.EFCore;
+using ODatalizer.EFCore.Converters;
+using ODatalizer.EFCore.Routing;
 using Sample.EFCore.Binders;
 using Sample.EFCore.Controllers;
+using Sample.EFCore.Converters;
 using Sample.EFCore.Data;
 using System;
 
@@ -93,7 +98,9 @@ namespace Sample.EFCore
                 return new[] { ep }; 
             });
           
-            services.AddControllers(options => options.ModelBinderProviders.Insert(0, new DateTimeBinderProvider()));
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ITypeConverter, DateTimeConverter>());
+            services.AddControllers(options => options.AddODatalizerOptions());
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

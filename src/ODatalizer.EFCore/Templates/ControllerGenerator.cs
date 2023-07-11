@@ -70,7 +70,9 @@ namespace ");
         var entityName = entitySet.EntityType().FullTypeName();
         var keysTypeNameComma = keys.Select(key => Type(entityName, key.Name) + " " + key.Name + "0").Join(", ");
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
-        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma1 = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma2 = keys.Select(key => key.Name + "={" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma = keys.Count() > 1 ? keysNameBraceComma2 : keysNameBraceComma1;
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
         
 
@@ -122,7 +124,35 @@ namespace ");
  } 
             this.Write("\n            return Ok(_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(");\n        }\n\n        [EnableQuery(PageSize = ");
+            this.Write(");\n        }\n\n        [HttpPost(\"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("\")]\n        public async Task<IActionResult> Post([FromBody]");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(" entity)\n        {\n        ");
+ if(Authorize) { 
+            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
+                    "         AccessedResources = {\n                    \"");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(@"""
+                }
+            };
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                    return Forbid();
+                else
+                    return Unauthorized();
+            }
+        ");
+ } 
+            this.Write("\n            if (!ModelState.IsValid)\n                return BadRequest(this.Crea" +
+                    "teSerializableErrorFromModelState());\n\n            _db.");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n            \n           " +
+                    " return Created(entity);\n        }\n\n        [EnableQuery(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
             this.Write(", MaxExpansionDepth = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
@@ -157,35 +187,7 @@ namespace ");
             this.Write(".FirstOrDefaultAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
-                    "   return Ok(entity);\n        }\n\n        [HttpPost(\"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("\")]\n        public async Task<IActionResult> Post([FromBody]");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(" entity)\n        {\n        ");
- if(Authorize) { 
-            this.Write("\n            var resource = new ODatalizerAuthorizationInfo\n            {\n       " +
-                    "         AccessedResources = {\n                    \"");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(@"""
-                }
-            };
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
-
-            if (!authorizationResult.Succeeded)
-            {
-                if (User.Identity.IsAuthenticated)
-                    return Forbid();
-                else
-                    return Unauthorized();
-            }
-        ");
- } 
-            this.Write("\n            if (!ModelState.IsValid)\n                return BadRequest(this.Crea" +
-                    "teSerializableErrorFromModelState());\n\n            _db.");
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n            \n           " +
-                    " return Created(entity);\n        }\n\n        [HttpPut(\"");
+                    "   return Ok(entity);\n        }\n\n        [HttpPut(\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");

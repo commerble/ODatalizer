@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Deltas;
 using ODatalizer.EFCore.Routing;
+using System.Collections.Generic;
+using ODatalizer.EFCore.Converters;
 
 namespace ODatalizer.EFCore
 {
@@ -37,7 +39,7 @@ namespace ODatalizer.EFCore
             _logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger<ODatalizerController<TDbContext>>();
             _authorization = sp.GetService<IAuthorizationService>();
             _authorize = authorize;
-            _visitor = new ODatalizerVisitor(DbContext);
+            _visitor = new ODatalizerVisitor(DbContext, sp.GetService<IEnumerable<ITypeConverter>>());
         }
 
         [EnableQuery(PageSize = ODatalizerEndpoint.DefaultPageSize)]
@@ -63,6 +65,10 @@ namespace ODatalizer.EFCore
             catch (NotSupportedException)
             {
                 return StatusCode(501);
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, ex.Message);
+                throw;
             }
 
             if (_visitor.BadRequest)

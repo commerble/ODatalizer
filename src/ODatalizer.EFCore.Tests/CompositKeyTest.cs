@@ -1,12 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
-using ODatalizer.EFCore.Tests.Host;
+﻿using ODatalizer.EFCore.Tests.Host;
 using Sample.EFCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -21,43 +16,62 @@ namespace ODatalizer.EFCore.Tests
         {
             _client = factory.CreateClient();
         }
-
-        [Fact(DisplayName = "GET ~/entitysets(key1,key2)"), TestPriority(0)]
-        public async Task Find()
+        /**
+         * https://docs.oasis-open.org/odata/odata/v4.01/cs01/abnf/odata-abnf-construction-rules.txt
+         * CompoundKey(multi-part keys) needs to specify key=value.
+         */
+        [Theory(DisplayName = "GET ~/entitysets(name1=key1,name2=key2)"), TestPriority(0)]
+        [InlineData("/sample/Favorites(UserId=1,ProductId=2)")]
+        [InlineData("/sample/Favorites(ProductId=2,UserId=1)")]
+        [InlineData("/sample/Favorites(UserId=1, ProductId=2)")]
+        // [InlineData("/sample/Favorites/1/2")] // --- not supported yet
+        public async Task Find(string path)
         {
-            var response = await _client.GetAsync("/sample/Favorites(1,1)");
+            var response = await _client.GetAsync(path);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        [Fact(DisplayName = "PUT ~/entitysets(key1,key2)"), TestPriority(1)]
-        public async Task Put()
+        [Theory(DisplayName = "PUT ~/entitysets(name1=key1,name2=key2)"), TestPriority(1)]
+        [InlineData("/sample/Favorites(UserId=1,ProductId=2)")]
+        [InlineData("/sample/Favorites(ProductId=2,UserId=1)")]
+        [InlineData("/sample/Favorites(UserId=1, ProductId=2)")]
+        // [InlineData("/sample/Favorites/1/2")] // --- not supported yet
+        public async Task Put(string path)
         {
-            var response = await _client.PutAsync("/sample/Favorites(1,1)", Helpers.JSON(new
+            var response = await _client.PutAsync(path, Helpers.JSON(new
             {
                 UserId = 1,
-                ProductId = 1,
+                ProductId = 2,
             }));
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
-        [Fact(DisplayName = "PATCH ~/entitysets(key1,key2)"), TestPriority(1)]
-        public async Task Patch()
+        [Theory(DisplayName = "PATCH ~/entitysets(name1=key1,name2=key2)"), TestPriority(1)]
+        [InlineData("/sample/Favorites(UserId=1,ProductId=2)")]
+        [InlineData("/sample/Favorites(ProductId=2,UserId=1)")]
+        [InlineData("/sample/Favorites(UserId=1, ProductId=2)")]
+        // [InlineData("/sample/Favorites/1/2")] // --- not supported yet
+        public async Task Patch(string path)
         {
-            var response = await _client.PatchAsync("/sample/Favorites(1,1)", Helpers.JSON(new
+            var response = await _client.PatchAsync(path, Helpers.JSON(new
             {
                 UserId = 1,
-                ProductId = 1,
+                ProductId = 2,
             }));
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
-        [Fact(DisplayName = "DELETE ~/entitysets(key1,key2)"), TestPriority(2)]
-        public async Task Delete()
+        [Theory(DisplayName = "DELETE ~/entitysets(name1=key1,name2=key2)"), TestPriority(2)]
+        [InlineData("/sample/Favorites(UserId=1,ProductId=1)")]
+        [InlineData("/sample/Favorites(ProductId=2,UserId=1)")]
+        [InlineData("/sample/Favorites(UserId=1, ProductId=3)")]
+        // [InlineData("/sample/Favorites/1/4")] // --- not supported yet
+        public async Task Delete(string path)
         {
-            var response = await _client.DeleteAsync("/sample/Favorites(1,1)");
+            var response = await _client.DeleteAsync(path);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }

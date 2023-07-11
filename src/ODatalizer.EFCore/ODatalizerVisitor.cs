@@ -1,6 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
+using Newtonsoft.Json.Linq;
+using ODatalizer.EFCore.Converters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,11 +24,13 @@ namespace ODatalizer.EFCore
         private readonly static Type[] _emptyTypes = Array.Empty<Type>();
         private readonly DbContext _db;
         private readonly Type _dbType;
+        private readonly IEnumerable<ITypeConverter> _typeConverters;
 
-        public ODatalizerVisitor(DbContext db)
+        public ODatalizerVisitor(DbContext db, IEnumerable<ITypeConverter> typeConverters)
         {
             _db = db;
             _dbType = db.GetType();
+            _typeConverters = typeConverters ?? Enumerable.Empty<ITypeConverter>();
         }
         public bool NotFound { get; protected set; }
         public bool BadRequest { get; protected set; }
@@ -220,16 +226,38 @@ namespace ODatalizer.EFCore
             throw new NotSupportedException();
         }
 
+        private static readonly Type _dateTimeType = typeof(DateTime);
+        private static readonly Type _dateTimeOffsetType = typeof(DateTimeOffset);
+        private static readonly MethodInfo _compareDateTimeType = _dateTimeType.GetMethod(nameof(DateTime.Compare));
+        private static readonly MethodInfo _compareDateTimeOffsetType = _dateTimeOffsetType.GetMethod(nameof(DateTimeOffset.Compare));
         public object Find(IQueryable queryable, IEnumerable<KeyValuePair<string, object>> keys)
         {
             var type = queryable.ElementType;
             var param = Expression.Parameter(type);
-            var body = keys.Select(key => Expression.Equal(Expression.Property(param, type.GetProperty(key.Key)), Expression.Constant(key.Value))).Aggregate((l, r) => Expression.And(l, r));
+            var body = keys.Select(key => {
+                var prop = type.GetProperty(key.Key);
+                var value = As(key.Value, prop.PropertyType);
+                return Expression.Equal(Expression.Property(param, prop), Expression.Constant(value));
+            }).Aggregate((l, r) => Expression.And(l, r));
             var lambda = Expression.Lambda(body, param);
             var filter = _where.MakeGenericMethod(type).Invoke(null, new object[] { queryable, lambda });
             var first = _firstOrDefault.MakeGenericMethod(type).Invoke(null, new[] { filter });
 
             return first;
+        }
+        public object As(object src, Type dstType)
+        {
+            var srcType = src.GetType();
+            if (dstType == srcType)
+                return src;
+
+            var converter = _typeConverters.FirstOrDefault(o => o.ModelType == dstType && o.CanConvertFrom(srcType));
+            if (converter != null)
+            {
+                return converter.Convert(src);
+            }
+
+            throw new InvalidCastException();
         }
     }
 
