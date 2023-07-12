@@ -77,7 +77,7 @@ namespace ODatalizer.EFCore.Builders
 
         public static string CalcFileName(string code, string @namespace)
         {
-            using var hasher = new MD5CryptoServiceProvider();
+            using var hasher = MD5.Create();
 
             var hash = hasher.ComputeHash(Encoding.UTF8.GetBytes(code)).Select(b => b.ToString("x2")).Join(string.Empty);
             
