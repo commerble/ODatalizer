@@ -13,8 +13,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using ODatalizer.EFCore;
 using ODatalizer.EFCore.Converters;
-using ODatalizer.EFCore.Routing;
-using Sample.EFCore.Binders;
 using Sample.EFCore.Controllers;
 using Sample.EFCore.Converters;
 using Sample.EFCore.Data;
