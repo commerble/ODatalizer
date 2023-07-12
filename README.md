@@ -9,13 +9,8 @@ The simplest implementation of OData server.
 
 ## Install
 
-### Entity Framework Core 5.x
-
-    $ dotnet add package ODatalizer.EFCore --version 5.*
-
-### Entity Framework Core 3.x
-
-    $ dotnet add package ODatalizer.EFCore --version 3.*
+    $ dotnet add package ODatalizer.EFCore
+    $ dotnet add package Microsoft.EntityFrameworkCore.Proxies --version 6.0.*
 
 ## Usage
 
@@ -30,28 +25,25 @@ public void ConfigureServices(IServiceCollection services)
             .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
 
     // add ODatalizer services
-    services.AddODatalizer();
+    services.AddODatalizer(sp =>
+    {
+        // create ODatalizer ep metadata
+        var ep = new ODatalizerEndpoint(
+                    db: sp.GetRequiredService<SampleDbContext>(),
+                    routeName: "Sample",
+                    routePrefix: "sample");
+
+        return new[] { ep }; 
+    });
 
     ...
 }
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
 {
-    // create ODatalizer ep metadata
-    var ep = new ODatalizerEndpoint(db:sample, 
-                                    routeName: "Sample", 
-                                    routePrefix: "sample");
-
-    // load ODatalizer controllers
-    app.UseODatalizer(ep);
+    // use $batch endpoint
+    app.UseODatalizer();
 
     ...
-
-    app.UseEndpoints(endpoints =>
-    {
-        // map ODatalizer routes
-        endpoints.MapODatalizer(ep);
-        ...
-    });
 }
 ```
 
@@ -80,8 +72,6 @@ var ep = new ODatalizerEndpoint(db:sample,
 
 ## Many to Many (Skip navigation)
 
-### Entity Framework Core 5.x
-
 Auto generate first level navigationlink property endpoint.
 
 - generate : ~/entityset/key/navigation/$ref
@@ -92,6 +82,9 @@ Auto generate first level navigationlink property endpoint.
 Dynamic controller does not support navigationlink segment.
 If you need not generate path, create controller action by self in ODataController or ODatalizerController.
 
-### Entity Framework Core 3.x
+## Others
 
-Entity Framework Core 3.x has not many to many relatioship feature.
+See sample project https://github.com/commerble/ODatalizer/tree/master/src/Sample.EFCore
+
+- Authorize
+- TypeConverter(ModelBinder)
