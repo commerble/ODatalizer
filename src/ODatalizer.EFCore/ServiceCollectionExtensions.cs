@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.OData.NewtonsoftJson;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ODatalizer.Batch;
+using ODatalizer.EFCore.Batch;
 using ODatalizer.EFCore.Builders;
 using ODatalizer.EFCore.Converters;
 using ODatalizer.EFCore.Routing;

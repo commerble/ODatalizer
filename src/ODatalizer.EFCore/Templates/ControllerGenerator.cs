@@ -13,7 +13,7 @@ namespace ODatalizer.EFCore.Templates
     using System.Text;
     using System.Collections.Generic;
     using Microsoft.OData.Edm;
-    using ODatalizer.Extensions;
+    using ODatalizer.EFCore.Extensions;
     using System;
     
     /// <summary>
@@ -56,7 +56,6 @@ using Microsoft.OData.UriParser;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using ODatalizer;
 using ODatalizer.EFCore;
 
 namespace ");

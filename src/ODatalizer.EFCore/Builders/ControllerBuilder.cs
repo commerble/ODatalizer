@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ODatalizer.EFCore.Templates;
-using ODatalizer.Extensions;
+using ODatalizer.EFCore.Extensions;
 using System;
 using System.IO;
 using System.Linq;

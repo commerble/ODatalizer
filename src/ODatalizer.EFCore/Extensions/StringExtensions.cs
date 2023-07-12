@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ODatalizer.Extensions
+namespace ODatalizer.EFCore.Extensions
 {
     internal static class StringExtensions
     {

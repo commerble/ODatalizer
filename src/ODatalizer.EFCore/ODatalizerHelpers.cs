@@ -9,7 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ODatalizer
+namespace ODatalizer.EFCore
 {
     public static class HttpRequestMessageExtensions
     {

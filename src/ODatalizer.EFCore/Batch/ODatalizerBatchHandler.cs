@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace ODatalizer.Batch
+namespace ODatalizer.EFCore.Batch
 {
     public class ODatalizerBatchHandler : DefaultODataBatchHandler
     {
