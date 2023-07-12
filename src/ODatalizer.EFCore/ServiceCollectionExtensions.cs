@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.OData;
 using Microsoft.AspNetCore.OData.Batch;
 using Microsoft.AspNetCore.OData.NewtonsoftJson;
@@ -17,7 +19,7 @@ namespace ODatalizer.EFCore
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddODatalizer(this IServiceCollection services, Func<IServiceProvider, ODatalizerEndpoint[]> endpointsFactory)
+        public static void AddODatalizer(this IServiceCollection services, Func<IServiceProvider, IEnumerable<ODatalizerEndpoint>> endpointsFactory)
         {
             services.AddSingleton<ControllerBuilder>();
             services.AddControllers()
@@ -27,7 +29,12 @@ namespace ODatalizer.EFCore
                 })
                 .AddOData((opt, sp) =>
                 {
-                    var endpoints = endpointsFactory.Invoke(sp.CreateScope().ServiceProvider);
+                    sp = sp.CreateScope().ServiceProvider;
+
+                    var endpoints = endpointsFactory.Invoke(sp);
+
+                    AddODatalizerControllers(sp, endpoints);
+
                     opt
                         .Select()
                         .Expand()
@@ -50,6 +57,17 @@ namespace ODatalizer.EFCore
 
             services.TryAddEnumerable(ServiceDescriptor.Transient<IApplicationModelProvider, ODatalizerRoutingApplciationModelProvider>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ODatalizerRoutingMatcherPolicy>());
+        }
+
+        private static void AddODatalizerControllers(IServiceProvider sp, IEnumerable<ODatalizerEndpoint> endpoints)
+        {
+            var controllerBuilder = sp.GetRequiredService<ControllerBuilder>();
+            var part = sp.GetRequiredService<ApplicationPartManager>();
+            foreach (var ep in endpoints)
+            {
+                var assembly = controllerBuilder.Build(ep);
+                part.ApplicationParts.Add(new AssemblyPart(assembly));
+            }
         }
     }
     public static class MvcOptionsExtensions
