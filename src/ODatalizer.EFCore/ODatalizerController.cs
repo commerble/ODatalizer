@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.OData.Deltas;
 using ODatalizer.EFCore.Routing;
 using System.Collections.Generic;
 using ODatalizer.EFCore.Converters;
+using Microsoft.OData.Edm;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace ODatalizer.EFCore
 {
@@ -79,6 +81,8 @@ namespace ODatalizer.EFCore
 
             if (_authorize)
             {
+                Request.AddAuthorizationInfoFromSelectExpandClause(_visitor.AuthorizationInfo);
+
                 var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Read");
 
                 if (!authorizationResult.Succeeded)
@@ -249,8 +253,18 @@ namespace ODatalizer.EFCore
             if (_visitor.NotFound || _visitor.Result == null)
                 return NotFound();
 
+            var type = typeof(Delta<>).MakeGenericType(_visitor.ResultType);
+            var result = await FormatReadAsync(type);
+
+            if (result == null || result.HasError || result.IsModelSet == false || result.Model == null || TryValidateModel(result.Model) == false)
+                return BadRequest(this.CreateSerializableErrorFromModelState());
+
             if (_authorize)
             {
+                var get = type.GetMethod("GetChangedPropertyNames", BindingFlags.Public | BindingFlags.Instance);
+                var names = (IEnumerable<string>)get.Invoke(result.Model, new object[0]);
+                _visitor.AuthorizationInfo.BindProps(names);
+
                 var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
 
                 if (!authorizationResult.Succeeded)
@@ -262,15 +276,9 @@ namespace ODatalizer.EFCore
                 }
             }
 
-            var type = typeof(Delta<>).MakeGenericType(_visitor.ResultType);
-            var result = await FormatReadAsync(type);
+            var patch = type.GetMethod("Patch", BindingFlags.Public | BindingFlags.Instance, new[] { _visitor.ResultType });
 
-            if (result == null || result.HasError || result.IsModelSet == false || result.Model == null || TryValidateModel(result.Model) == false)
-                return BadRequest(this.CreateSerializableErrorFromModelState());
-
-            var method = type.GetMethod("Patch", BindingFlags.Public | BindingFlags.Instance, new[] { _visitor.ResultType });
-
-            method.Invoke(result.Model, new[] { _visitor.Result });
+            patch.Invoke(result.Model, new[] { _visitor.Result });
 
             await DbContext.SaveChangesAsync();
 
@@ -346,6 +354,35 @@ namespace ODatalizer.EFCore
             var formatter = _mvcOptions.Value.InputFormatters.FirstOrDefault(f => f.CanRead(context));
 
             return await formatter?.ReadAsync(context);
+        }
+
+        /// <summary>
+        /// https://github.com/OData/AspNetCoreOData/blob/2bde4e5994dcc049c0a924fefc4663c1b5341247/sample/ODataDynamicModel/Controllers/HandleAllController.cs
+        /// </summary>
+        /// <param name="odataPath"></param>
+        /// <param name="edmEntityType"></param>
+        protected private void SetSelectExpandClauseOnODataFeature(ODataPath odataPath, IEdmType edmEntityType)
+        {
+            IDictionary<string, string> options = new Dictionary<string, string>();
+            foreach (var k in Request.Query.Keys)
+            {
+                options.Add(k, Request.Query[k]);
+            }
+
+            //At this point, we should have valid entity segment and entity type.
+            //If there is invalid entity in the query, then OData routing should return 404 error before executing this api
+            var segment = odataPath.FirstSegment as EntitySetSegment;
+            IEdmNavigationSource source = segment?.EntitySet;
+            var last = odataPath.LastSegment as NavigationPropertySegment;
+            edmEntityType = last.EdmType;
+            if (edmEntityType.TypeKind == EdmTypeKind.Collection)
+            {
+                edmEntityType = edmEntityType.AsElementType();
+            }
+            
+            ODataQueryOptionParser parser = new(Request.GetModel(), edmEntityType, source, options);
+            //Set the SelectExpand Clause on the ODataFeature otherwise  Odata formatter won't show the expand and select properties in the response.
+            Request.ODataFeature().SelectExpandClause = parser.ParseSelectAndExpand();
         }
     }
 }

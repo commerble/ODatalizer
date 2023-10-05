@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using ODatalizer;
 using ODatalizer.EFCore;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Deltas;
 
 namespace Sample.EFCore.Controllers
 {

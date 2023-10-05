@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ODatalizer.EFCore;
@@ -67,9 +68,15 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    }
                 }
             };
+
+            Request.AddAuthorizationInfoFromSelectExpandClause(resource);
+
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
 
             if (!authorizationResult.Succeeded)
@@ -93,7 +100,10 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    }
                 }
             };
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
@@ -124,9 +134,15 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    }
                 }
             };
+            
+            Request.AddAuthorizationInfoFromSelectExpandClause(resource);
+
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
 
             if (!authorizationResult.Succeeded)
@@ -152,7 +168,10 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    }
                 }
             };
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
@@ -194,9 +213,13 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    }
                 }
             };
+            resource.BindProps(delta.GetChangedPropertyNames());
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
 
             if (!authorizationResult.Succeeded)
@@ -226,7 +249,10 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    }
                 }
             };
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
@@ -274,10 +300,19 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>",
-                    "<#= navEntityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    },
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= navEntityName #>"
+                    }
                 }
             };
+
+            Request.AddAuthorizationInfoFromSelectExpandClause(resource);
+
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Read");
 
             if (!authorizationResult.Succeeded)
@@ -303,8 +338,14 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>",
-                    "<#= navEntityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    },
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= navEntityName #>"
+                    }
                 }
             };
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");
@@ -347,8 +388,14 @@ namespace <#= Namespace #>
             var resource = new ODatalizerAuthorizationInfo
             {
                 AccessedResources = {
-                    "<#= entityName #>",
-                    "<#= navEntityName #>"
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= entityName #>"
+                    },
+                    new ODatalizerAccessedResource
+                    {
+                        Name = "<#= navEntityName #>"
+                    }
                 }
             };
             var authorizationResult = await _authorization.AuthorizeAsync(User, resource, "Write");

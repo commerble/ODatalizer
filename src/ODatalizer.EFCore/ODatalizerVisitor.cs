@@ -103,7 +103,8 @@ namespace ODatalizer.EFCore
                 PropertySetter = null;
             }
 
-            AuthorizationInfo.AccessedResources.Add(ResultType.FullName);
+            AuthorizationInfo.BindProp(segment.NavigationProperty.Name);
+            AuthorizationInfo.Add(ResultType.FullName);
 
             return Task.CompletedTask;
         }
@@ -121,7 +122,7 @@ namespace ODatalizer.EFCore
 
             Result = dbSet;
             ResultType = entityType;
-            AuthorizationInfo.AccessedResources.Add(entityType.FullName);
+            AuthorizationInfo.Add(entityType.FullName);
             return Task.CompletedTask;
         }
 
@@ -263,6 +264,27 @@ namespace ODatalizer.EFCore
 
     public class ODatalizerAuthorizationInfo
     {
-        public List<string> AccessedResources = new List<string>();
+        public List<ODatalizerAccessedResource> AccessedResources = new List<ODatalizerAccessedResource>();
+
+        public void Add(string name)
+        {
+            AccessedResources.Add(new ODatalizerAccessedResource { Name = name });
+        }
+
+        public void BindProp(string propName)
+        {
+            AccessedResources.LastOrDefault()?.Properties.Add(propName);
+        }
+
+        public void BindProps(IEnumerable<string> propNames)
+        {
+            AccessedResources.LastOrDefault()?.Properties.AddRange(propNames);
+        }
+    }
+
+    public class ODatalizerAccessedResource
+    {
+        public string Name { get; set; }
+        public List<string> Properties { get; set; } = new List<string>();
     }
 }

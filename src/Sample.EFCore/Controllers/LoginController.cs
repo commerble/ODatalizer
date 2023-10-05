@@ -16,8 +16,11 @@ namespace Sample.EFCore.Controllers
         {
             var scope = new[]
             {
-                "read:sample.efcore.entities.product",
-                "read:sample.efcore.entities.category"
+                "+read:sample.efcore.entities.product",
+                "+read:sample.efcore.entities.category",
+                "-read:sample.efcore.entities.product#name",
+                "+write:sample.efcore.entities.product",
+                "-write:sample.efcore.entities.product#name",
             };
             var claims = new List<Claim>
             {

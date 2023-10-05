@@ -103,6 +103,79 @@ namespace ODatalizer.EFCore
             return resolver;
         }
 
+        public static void AddAuthorizationInfoFromSelectExpandClause(this HttpRequest request, ODatalizerAuthorizationInfo authorizationInfo)
+        {
+            request.ParseSelectExpandClauseOnODataFeature();
+            var clauses = new Queue<SelectExpandClause>(new[] { request.ODataFeature().SelectExpandClause });
+            while (clauses.TryDequeue(out var clause) && clause != null)
+            {
+                IEnumerable<string> names;
+                names = clause.SelectedItems.OfType<PathSelectItem>().SelectMany(item => item.SelectedPath.Select(path => path.Identifier));
+                if (names != null)
+                {
+                    authorizationInfo.BindProps(names);
+                }
+
+                foreach (var expand in clause.SelectedItems.OfType<ExpandedNavigationSelectItem>())
+                {
+                    var entitySet = expand.NavigationSource.EntityType().FullTypeName();
+                    authorizationInfo.Add(entitySet);
+                    clauses.Enqueue(expand.SelectAndExpand);
+                }
+            }
+        }
+
+        public static void ParseSelectExpandClauseOnODataFeature(this HttpRequest request)
+        {
+            SetSelectExpandClauseOnODataFeature(request, request.ODataFeature().Path);
+        }
+
+        private static (IEdmNavigationSource source, IEdmType edmType) GetParseTarget(ODataPath odataPath)
+        {
+            var stack = new Stack<ODataPathSegment>(odataPath);
+            IEdmNavigationSource source = null;
+            IEdmType edmType = null;
+            ODataPathSegment segment;
+            while(stack.TryPop(out segment))
+            {
+                if (segment is EntitySetSegment entitySetSegment)
+                {
+                    source = entitySetSegment.EntitySet;
+                    edmType = entitySetSegment.EntitySet.EntityType();
+                    break;
+                }
+                else if (segment is NavigationPropertySegment navigationPropertySegment)
+                {
+                    source = navigationPropertySegment.NavigationSource;
+                    if (segment.EdmType.TypeKind == EdmTypeKind.Collection)
+                    {
+                        edmType = segment.EdmType.AsElementType();
+                    }
+                    else
+                    {
+                        edmType = segment.EdmType;
+                    }
+                    break;
+                }
+            }
+
+            return (source, edmType);
+        }
+
+        private static void SetSelectExpandClauseOnODataFeature(this HttpRequest request, ODataPath odataPath)
+        {
+            IDictionary<string, string> options = new Dictionary<string, string>();
+            foreach (var k in request.Query.Keys)
+            {
+                options.Add(k, request.Query[k]);
+            }
+
+            var (source, edmType) = GetParseTarget(odataPath);
+            var parser = new ODataQueryOptionParser(request.GetModel(), edmType, source, options);
+            
+            request.ODataFeature().SelectExpandClause = parser.ParseSelectAndExpand();
+        }
+
         public static SerializableError CreateSerializableErrorFromModelState(this ODataController controller)
         {
             // https://source.dot.net/#Microsoft.AspNetCore.Mvc.Core/SerializableError.cs,19bc9a1c61ce7ae0
