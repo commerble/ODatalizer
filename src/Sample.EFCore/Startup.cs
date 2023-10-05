@@ -47,7 +47,7 @@ namespace Sample.EFCore
                 connection.Open();
                 services.AddDbContext<SampleDbContext>(opt =>
                      opt.UseSqlite(connection)
-                        //.UseLazyLoadingProxies()
+                        .UseLazyLoadingProxies()
                         .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
             }
             else
