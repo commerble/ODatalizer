@@ -20,7 +20,7 @@
     "Sample.EFCore": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "weatherforecast",
+      "launchUrl": "sample",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
