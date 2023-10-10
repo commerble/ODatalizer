@@ -41,7 +41,10 @@ namespace ODatalizer.EFCore
                     opt.AddRouteComponents(ep.RoutePrefix, ep.EdmModel, services =>
                     {
                         services.AddSingleton<ODataBatchHandler, ODatalizerBatchHandler>();
-                        services.AddSingleton(new ODatalizerControllerNameAccessor(ep.ODatalizerController.Replace("Controller", string.Empty)));
+                        if (ep.ODatalizerController != null)
+                        {
+                            services.AddSingleton(new ODatalizerControllerNameAccessor(ep.ODatalizerController.Replace("Controller", string.Empty)));
+                        }
                     });
                 }
             })
