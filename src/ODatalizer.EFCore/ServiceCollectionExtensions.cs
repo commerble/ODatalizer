@@ -22,7 +22,7 @@ namespace ODatalizer.EFCore
         public static void AddODatalizer(this IServiceCollection services, Func<IServiceProvider, IEnumerable<ODatalizerEndpoint>> endpointsFactory)
         {
             services.AddSingleton<ControllerBuilder>();
-            services.AddControllers()
+            services.AddControllers(options => options.AddODatalizerOptions())
                 .AddNewtonsoftJson(opt =>
                 {
                     opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;

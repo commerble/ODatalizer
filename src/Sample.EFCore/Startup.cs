@@ -97,8 +97,6 @@ namespace Sample.EFCore
             });
           
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITypeConverter, DateTimeConverter>());
-            services.AddControllers(options => options.AddODatalizerOptions());
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
