@@ -97,7 +97,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
             this.Write(", MaxExpansionDepth = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
-            this.Write(")]\n        [HttpGet(\"");
+            this.Write(")]\n        [HttpGet(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("\")]\n        ");
@@ -134,7 +134,7 @@ namespace ");
  } 
             this.Write("\n            return Ok(_db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write(");\n        }\n\n        [HttpPost(\"");
+            this.Write(");\n        }\n\n        [HttpPost(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("\")]\n        public async Task<IActionResult> Post([FromBody]");
@@ -168,7 +168,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
             this.Write(", MaxExpansionDepth = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
-            this.Write(")]\n        [HttpGet(\"");
+            this.Write(")]\n        [HttpGet(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -204,7 +204,7 @@ namespace ");
             this.Write(".FirstOrDefaultAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
-                    "   return Ok(entity);\n        }\n\n        [HttpPut(\"");
+                    "   return Ok(entity);\n        }\n\n        [HttpPut(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -258,7 +258,7 @@ namespace ");
             return NoContent();
         }
 
-        [HttpPatch(""");
+        [HttpPatch(""/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -295,7 +295,7 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (original == null)\n                return NotFound();\n\n       " +
                     "     delta.Patch(original);\n\n            await _db.SaveChangesAsync();\n\n        " +
-                    "    return NoContent();\n        }\n\n        [HttpDelete(\"");
+                    "    return NoContent();\n        }\n\n        [HttpDelete(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -349,7 +349,7 @@ namespace ");
     
             this.Write("\n        [EnableQueryRef(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
-            this.Write(")]\n        [HttpGet(\"");
+            this.Write(")]\n        [HttpGet(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -394,7 +394,7 @@ namespace ");
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
                     "   return Ok(entity.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(");\n        }\n\n        [HttpPost(\"");
+            this.Write(");\n        }\n\n        [HttpPost(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -445,7 +445,7 @@ namespace ");
                     " root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n\n            return Ok()" +
-                    ";\n        }\n\n        [HttpDelete(\"");
+                    ";\n        }\n\n        [HttpDelete(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");

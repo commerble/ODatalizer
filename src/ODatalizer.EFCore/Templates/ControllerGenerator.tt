@@ -61,7 +61,7 @@ namespace <#= Namespace #>
         }
 
         [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
-        [HttpGet("<#= RoutePrefix #><#= entitySetName #>")]
+        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>")]
         <# if(Authorize) { #>
         public async Task<IActionResult> Get()
         {
@@ -93,7 +93,7 @@ namespace <#= Namespace #>
             return Ok(_db.<#= entitySetName #>);
         }
 
-        [HttpPost("<#= RoutePrefix #><#= entitySetName #>")]
+        [HttpPost("/<#= RoutePrefix #><#= entitySetName #>")]
         public async Task<IActionResult> Post([FromBody]<#= entityName #> entity)
         {
         <# if(Authorize) { #>
@@ -127,7 +127,7 @@ namespace <#= Namespace #>
         }
 
         [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
-        [HttpGet("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
+        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
         public async Task<IActionResult> GetOne(<#= keysTypeNameComma #>)
         {
         <# if(Authorize) { #>
@@ -161,7 +161,7 @@ namespace <#= Namespace #>
             return Ok(entity);
         }
 
-        [HttpPut("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
+        [HttpPut("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
         public async Task<IActionResult> Put(<#= keysTypeNameComma #>, [FromBody]<#= entityName #> entity)
         {
         <# if(Authorize) { #>
@@ -206,7 +206,7 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        [HttpPatch("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
+        [HttpPatch("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
         public async Task<IActionResult> Patch(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
         {
         <# if(Authorize) { #>
@@ -242,7 +242,7 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        [HttpDelete("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
+        [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
         public async Task<IActionResult> Delete(<#= keysTypeNameComma #>)
         {
         <# if(Authorize) { #>
@@ -293,7 +293,7 @@ namespace <#= Namespace #>
             var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
     #>
         [EnableQueryRef(PageSize = <#= PageSize #>)]
-        [HttpGet("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref")]
+        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref")]
         public async Task<IActionResult> Get<#= navName #>Ref(<#= keysTypeNameComma #>)
         {
         <# if(Authorize) { #>
@@ -331,7 +331,7 @@ namespace <#= Namespace #>
             return Ok(entity.<#= navName #>);
         }
 
-        [HttpPost("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref")]
+        [HttpPost("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref")]
         public async Task<IActionResult> Post<#= navName #>Ref(<#= keysTypeNameComma #>, [FromBody]Uri uri)
         {
         <# if(Authorize) { #>
@@ -381,7 +381,7 @@ namespace <#= Namespace #>
             return Ok();
         }
 
-        [HttpDelete("<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)/$ref")]
+        [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)/$ref")]
         public async Task<IActionResult> Delete<#= navName #>Ref(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
         {
         <# if(Authorize) { #>
