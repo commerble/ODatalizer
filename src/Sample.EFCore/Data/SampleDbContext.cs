@@ -6,7 +6,7 @@ namespace Sample.EFCore.Data
 {
     public class SampleDbContext : DbContext
     {
-        public SampleDbContext([NotNull] DbContextOptions options) : base(options)
+        public SampleDbContext([NotNull] DbContextOptions<SampleDbContext> options) : base(options)
         {
         }
 

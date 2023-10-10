@@ -43,16 +43,24 @@ namespace Sample.EFCore
 
             if (string.IsNullOrEmpty(sqlsvr))
             {
-                var connection = new SqliteConnection("datasource=:memory:");
-                connection.Open();
+                var connection1 = new SqliteConnection("datasource=:memory:");
+                connection1.Open();
                 services.AddDbContext<SampleDbContext>(opt =>
-                     opt.UseSqlite(connection)
+                     opt.UseSqlite(connection1)
+                        .UseLazyLoadingProxies()
+                        .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
+
+                var connection2 = new SqliteConnection("datasource=:memory:");
+                connection2.Open();
+                services.AddDbContext<AnotherDbContext>(opt =>
+                     opt.UseSqlite(connection2)
                         .UseLazyLoadingProxies()
                         .ConfigureWarnings(o => o.Ignore(RelationalEventId.AmbientTransactionWarning)));
             }
             else
             {
                 services.AddDbContext<SampleDbContext>(opt => opt.UseSqlServer(sqlsvr).UseLazyLoadingProxies());
+                services.AddDbContext<AnotherDbContext>(opt => opt.UseSqlServer(sqlsvr).UseLazyLoadingProxies());
             }
 
             services.Configure<TestSettings>(Configuration);
@@ -93,16 +101,22 @@ namespace Sample.EFCore
                             authorize: TestSettings.UseAuthorize,
                             @namespace: TestSettings.Namespace);
 
-                return new[] { ep }; 
+                var an = new ODatalizerEndpoint(
+                            db: sp.GetRequiredService<AnotherDbContext>(),
+                            routeName: "Another",
+                            routePrefix: "another");
+
+                return new[] { ep, an }; 
             });
           
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITypeConverter, DateTimeConverter>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SampleDbContext sample, AnotherDbContext another)
         {
             SampleDbInitializer.Initialize(sample);
+            AnotherDbInitializer.Initialize(another);
 
             app.UseODatalizer();
 
