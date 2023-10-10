@@ -5,3 +5,4 @@ obj
 *.info
 *.Development.json
 Class.cs
+/src/Sample.EFCore/Sample.EFCore.csproj.user
