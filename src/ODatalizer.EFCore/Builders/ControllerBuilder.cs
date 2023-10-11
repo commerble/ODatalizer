@@ -75,6 +75,7 @@ namespace ODatalizer.EFCore.Builders
             return Assembly.LoadFrom(dllPath);
         }
 
+        private static string VERSION = typeof(ControllerBuilder).Assembly.GetName().Version?.ToString() ?? Guid.NewGuid().ToString("n");
         public static string CalcFileName(string code, string @namespace)
         {
             using var hasher = MD5.Create();
@@ -83,7 +84,7 @@ namespace ODatalizer.EFCore.Builders
             
             hasher.Clear();
 
-            return Path.Combine(Path.GetTempPath(), $"{@namespace}.{hash}.dll");
+            return Path.Combine(Path.GetTempPath(), $"{@namespace}.{VERSION}.{hash}.dll");
         }
     }
 }
