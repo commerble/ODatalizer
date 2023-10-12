@@ -34,9 +34,11 @@ namespace ODatalizer.EFCore.Builders
 
             if (File.Exists(dllPath))
                 return Assembly.LoadFrom(dllPath);
-
-            var tree = CSharpSyntaxTree.ParseText(code);
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false && string.IsNullOrEmpty(asm.Location) == false).Concat(new[] { typeof(DbSet<>).Assembly } ).Distinct();
+            
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(asm => asm.IsDynamic == false && string.IsNullOrEmpty(asm.Location) == false).Concat(new[] { typeof(DbSet<>).Assembly }).Distinct();
+            
+            var prefix = string.Join("\n", assemblies.Select(asm => "// " + asm.FullName));
+            var tree = CSharpSyntaxTree.ParseText(prefix + "\n" + code);
             var comp = CSharpCompilation.Create(
                 assemblyName: @namespace,
                 syntaxTrees: new[] { tree },
@@ -75,7 +77,6 @@ namespace ODatalizer.EFCore.Builders
             return Assembly.LoadFrom(dllPath);
         }
 
-        private static string VERSION = typeof(ControllerBuilder).Assembly.GetName().Version?.ToString() ?? Guid.NewGuid().ToString("n");
         public static string CalcFileName(string code, string @namespace)
         {
             using var hasher = MD5.Create();
@@ -84,7 +85,7 @@ namespace ODatalizer.EFCore.Builders
             
             hasher.Clear();
 
-            return Path.Combine(Path.GetTempPath(), $"{@namespace}.{VERSION}.{hash}.dll");
+            return Path.Combine(Path.GetTempPath(), $"{@namespace}.{hash}.dll");
         }
     }
 }
