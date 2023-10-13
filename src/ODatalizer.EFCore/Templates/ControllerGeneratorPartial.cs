@@ -112,24 +112,5 @@ namespace ODatalizer.EFCore.Templates
             
             return skipNavigation != null;
         }
-
-        public IEnumerable<IEnumerable<T>> GetPermutation<T>(IEnumerable<T> items)
-        {
-            if (items.Count() == 1)
-            {
-                yield return items;
-            }
-
-            foreach (var item in items)
-            {
-                var head = new T[] { item };
-
-                foreach (var tails in GetPermutation(items.Except(head)))
-                {
-                    yield return head.Concat(tails);
-                }
-            }
-        }
-
     }
 }

@@ -32,7 +32,7 @@ using ODatalizer.EFCore;
 
 namespace <#= Namespace #>
 {
-<#  
+<# 
     foreach(var entitySet in EdmModel.EntityContainer.EntitySets()) {
         var entitySetName = entitySet.Name;
         var keys = entitySet.EntityType().DeclaredKey;
@@ -40,7 +40,9 @@ namespace <#= Namespace #>
         var entityName = entitySet.EntityType().FullTypeName();
         var keysTypeNameComma = keys.Select(key => Type(entityName, key.Name) + " " + key.Name + "0").Join(", ");
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
-        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma1 = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma2 = keys.Select(key => key.Name + "={" + key.Name + "0" + "}").Join(",");
+        var keysNameBraceComma = keys.Count() > 1 ? keysNameBraceComma2 : keysNameBraceComma1;
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
         
 #>
@@ -159,13 +161,6 @@ namespace <#= Namespace #>
             return Ok(entity);
         }
 
-        <# foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { #>
-        [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
-        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>(<#= pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",") #>)")]
-        public Task<IActionResult> GetOne<#=i#>(<#= keysTypeNameComma #>)
-            => GetOne(<#= keysNameComma #>);
-        <# } #>
-
         [HttpPut("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
         public async Task<IActionResult> Put(<#= keysTypeNameComma #>, [FromBody]<#= entityName #> entity)
         {
@@ -211,12 +206,6 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        <# foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { #>
-        [HttpPut("/<#= RoutePrefix #><#= entitySetName #>(<#= pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",") #>)")]
-        public Task<IActionResult> Put<#=i#>(<#= keysTypeNameComma #>, [FromBody]<#= entityName #> entity)
-            => Put(<#= keysNameComma #>, entity);
-        <# } #>
-
         [HttpPatch("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
         public async Task<IActionResult> Patch(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
         {
@@ -253,12 +242,6 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        <# foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { #>
-        [HttpPatch("/<#= RoutePrefix #><#= entitySetName #>(<#= pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",") #>)")]
-        public Task<IActionResult> Patch<#=i#>(<#= keysTypeNameComma #>, [FromBody]Delta<<#= entityName #>> delta)
-            => Patch(<#= keysNameComma #>, delta);
-        <# } #>
-
         [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)")]
         public async Task<IActionResult> Delete(<#= keysTypeNameComma #>)
         {
@@ -293,12 +276,6 @@ namespace <#= Namespace #>
 
             return NoContent();
         }
-
-        <# foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { #>
-        [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",") #>)")]
-        public Task<IActionResult> Delete<#=i#>(<#= keysTypeNameComma #>)
-            => Delete(<#= keysNameComma #>);
-        <# } #>
 
     <#
         var suffix = 1;
@@ -354,13 +331,6 @@ namespace <#= Namespace #>
             return Ok(entity.<#= navName #>);
         }
 
-        <# foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { #>
-        [EnableQueryRef(PageSize = <#= PageSize #>)]
-        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>(<#= pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",") #>)/<#= navName #>/$ref")]
-        public Task<IActionResult> Get<#= navName #>Ref<#=i#>(<#= keysTypeNameComma #>)
-            => Get<#= navName #>Ref(<#= keysNameComma #>);
-        <# } #>
-
         [HttpPost("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref")]
         public async Task<IActionResult> Post<#= navName #>Ref(<#= keysTypeNameComma #>, [FromBody]Uri uri)
         {
@@ -411,12 +381,6 @@ namespace <#= Namespace #>
             return Ok();
         }
 
-        <# foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { #>
-        [HttpPost("/<#= RoutePrefix #><#= entitySetName #>(<#= pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",") #>)/<#= navName #>/$ref")]
-        public Task<IActionResult> Post<#= navName #>Ref<#=i#>(<#= keysTypeNameComma #>, [FromBody]Uri uri)
-            => Post<#= navName #>Ref(<#= keysNameComma #>, uri);
-        <# } #>
-
         [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)/$ref")]
         public async Task<IActionResult> Delete<#= navName #>Ref(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
         {
@@ -461,13 +425,6 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
-        <# foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { #>
-        <# foreach(var (nKeys, j) in GetPermutation(navKeys).Select((nKeys, j) => (nKeys, j))) { #>
-        [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",") #>)/<#= navName #>(<#= nKeys.Select(k => k.Name + "={" + k.Name + "1}").Join(",") #>)/$ref")]
-        public Task<IActionResult> Delete<#= navName #>Ref<#=i#>x<#=j#>(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
-            => Delete<#= navName #>Ref(<#= keysNameComma #>, <#= navKeysNameComma #>);
-        <# } #>
-        <# } #>
     <#  } #>
     }
 <# } #>
