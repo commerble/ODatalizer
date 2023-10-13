@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -17,6 +18,8 @@ using Sample.EFCore.Controllers;
 using Sample.EFCore.Converters;
 using Sample.EFCore.Data;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Sample.EFCore
 {
@@ -140,6 +143,16 @@ namespace Sample.EFCore
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGet("/debug/routes", (IEnumerable<EndpointDataSource> endpointSources) => {
+                    return string.Join("\n", endpointSources.SelectMany(source => source.Endpoints).SelectMany(ep => {
+                        var httpMethods = ep.Metadata.OfType<HttpMethodMetadata>().SelectMany(m => m.HttpMethods).Distinct();
+                        if (ep is RouteEndpoint r)
+                        {
+                            return httpMethods.Select(m => $"{m} {r.RoutePattern.RawText}\t{r.DisplayName}");
+                        }
+                        return httpMethods.Select(m => $"{m}\t{ep.DisplayName}");
+                    }));
+                });
             });
         }
     }
