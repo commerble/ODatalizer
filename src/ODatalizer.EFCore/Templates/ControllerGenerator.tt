@@ -42,7 +42,7 @@ namespace <#= Namespace #>
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
         var keysNameBraceComma1 = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
         var keysNameBraceComma2 = keys.Select(key => key.Name + "={" + key.Name + "0" + "}").Join(",");
-        var keysNameBraceComma = keys.Count() > 1 ? keysNameBraceComma2 : keysNameBraceComma1;
+        var keysNameBraceComma = keysNameBraceComma2;
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
         
 #>
@@ -289,11 +289,12 @@ namespace <#= Namespace #>
             var navName = nav.Name;
             var navKeysTypeNameComma = navKeys.Select(key => Type(key.Type) + " " + key.Name + suffix).Join(", ");
             var navKeysNameComma = navKeys.Select(key => key.Name + suffix).Join(", ");
-            var navKeysNameBraceComma = navKeys.Select(key => "{" + key.Name + suffix + "}").Join(", ");
+            var navKeysNameBraceComma1 = navKeys.Select(key => "{" + key.Name + suffix + "}").Join(", ");
+            var navKeysNameBraceComma2 = navKeys.Select(key => key.Name + "={" + key.Name + suffix + "}").Join(", ");
             var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
     #>
         [EnableQueryRef(PageSize = <#= PageSize #>)]
-        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref")]
+        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma1 #>)/<#= navName #>/$ref")]
         public async Task<IActionResult> Get<#= navName #>Ref(<#= keysTypeNameComma #>)
         {
         <# if(Authorize) { #>
@@ -331,7 +332,11 @@ namespace <#= Namespace #>
             return Ok(entity.<#= navName #>);
         }
 
-        [HttpPost("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>/$ref")]
+        [EnableQueryRef(PageSize = <#= PageSize #>)]
+        [HttpGet("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma2 #>)/<#= navName #>/$ref")]
+        public Task<IActionResult> Get<#= navName #>Ref2(<#= keysTypeNameComma #>) => Get<#= navName #>Ref(<#= keysNameComma #>);
+
+        [HttpPost("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma1 #>)/<#= navName #>/$ref")]
         public async Task<IActionResult> Post<#= navName #>Ref(<#= keysTypeNameComma #>, [FromBody]Uri uri)
         {
         <# if(Authorize) { #>
@@ -381,7 +386,10 @@ namespace <#= Namespace #>
             return Ok();
         }
 
-        [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma #>)/<#= navName #>(<#= navKeysNameBraceComma #>)/$ref")]
+        [HttpPost("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma2 #>)/<#= navName #>/$ref")]
+        public Task<IActionResult> Post<#= navName #>Ref2(<#= keysTypeNameComma #>, [FromBody]Uri uri) => Post<#= navName #>Ref(<#= keysNameComma #>, uri);
+        
+        [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma1 #>)/<#= navName #>(<#= navKeysNameBraceComma1 #>)/$ref")]
         public async Task<IActionResult> Delete<#= navName #>Ref(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>)
         {
         <# if(Authorize) { #>
@@ -425,6 +433,8 @@ namespace <#= Namespace #>
             return NoContent();
         }
 
+        [HttpDelete("/<#= RoutePrefix #><#= entitySetName #>(<#= keysNameBraceComma2 #>)/<#= navName #>(<#= navKeysNameBraceComma2 #>)/$ref")]
+        public Task<IActionResult> Delete<#= navName #>Ref2(<#= keysTypeNameComma #>, <#= navKeysTypeNameComma #>) => Delete<#= navName #>Ref(<#= keysNameComma #>, <#= navKeysNameComma #>);
     <#  } #>
     }
 <# } #>
