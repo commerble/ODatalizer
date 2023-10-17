@@ -71,7 +71,8 @@ namespace ODatalizer.EFCore.Routing
                 try
                 {
                     var uri = new Uri(httpContext.Request.GetEncodedUrl());
-                    var serviceRoot = new Uri(new Uri(uri.GetLeftPart(System.UriPartial.Authority)), metadata.Prefix);
+                    var appRoot = new Uri(new Uri(uri.GetLeftPart(UriPartial.Authority)), httpContext.Request.PathBase + "/");
+                    var serviceRoot = new Uri(appRoot, metadata.Prefix);
                     var parser = new ODataUriParser(model, serviceRoot, uri);
                     var odataPath = parser.ParsePath();
                     if (odataPath != null)
