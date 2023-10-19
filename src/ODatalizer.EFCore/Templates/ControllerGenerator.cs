@@ -70,9 +70,7 @@ namespace ");
         var entityName = entitySet.EntityType().FullTypeName();
         var keysTypeNameComma = keys.Select(key => Type(entityName, key.Name) + " " + key.Name + "0").Join(", ");
         var keysNameComma = keys.Select(key => key.Name + "0").Join(", ");
-        var keysNameBraceComma1 = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
-        var keysNameBraceComma2 = keys.Select(key => key.Name + "={" + key.Name + "0" + "}").Join(",");
-        var keysNameBraceComma = keysNameBraceComma2;
+        var keysNameBraceComma = keys.Select(key => "{" + key.Name + "0" + "}").Join(",");
         var keysNameCondition = "o => " + keys.Select(key => "o." + key.Name + " == " + key.Name + "0").Join(" && ");
         
 
@@ -204,7 +202,43 @@ namespace ");
             this.Write(".FirstOrDefaultAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
-                    "   return Ok(entity);\n        }\n\n        [HttpPut(\"/");
+                    "   return Ok(entity);\n        }\n\n        ");
+ foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { 
+            this.Write("\n        [EnableQuery(PageSize = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
+            this.Write(", MaxExpansionDepth = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(MaxExpansionDepth));
+            this.Write(")]\n        [HttpGet(\"/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",")));
+            this.Write(")\")]\n        public Task<IActionResult> GetOne");
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(")\n            => GetOne(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n        ");
+ } 
+            this.Write("\n        \n        ");
+ foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { 
+            this.Write("\n        [HttpPut(\"/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",")));
+            this.Write(")\")]\n        public Task<IActionResult> Put");
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(", [FromBody]");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write(" entity)\n            => Put(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(", entity);\n        ");
+ } 
+            this.Write("\n\n        [HttpPut(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -258,7 +292,24 @@ namespace ");
             return NoContent();
         }
 
-        [HttpPatch(""/");
+        ");
+ foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { 
+            this.Write("\n        [HttpPatch(\"/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",")));
+            this.Write(")\")]\n        public Task<IActionResult> Patch");
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(", [FromBody]Delta<");
+            this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
+            this.Write("> delta)\n            => Patch(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(", delta);\n        ");
+ } 
+            this.Write("\n\n        [HttpPatch(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -295,7 +346,22 @@ namespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));
             this.Write(");\n\n            if (original == null)\n                return NotFound();\n\n       " +
                     "     delta.Patch(original);\n\n            await _db.SaveChangesAsync();\n\n        " +
-                    "    return NoContent();\n        }\n\n        [HttpDelete(\"/");
+                    "    return NoContent();\n        }\n\n        ");
+ foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { 
+            this.Write("\n        [HttpDelete(\"/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",")));
+            this.Write(")\")]\n        public Task<IActionResult> Delete");
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(")\n            => Delete(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n        ");
+ } 
+            this.Write("\n\n        [HttpDelete(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
@@ -348,13 +414,36 @@ namespace ");
             var navKeysNameBraceComma2 = navKeys.Select(key => key.Name + "={" + key.Name + suffix + "}").Join(", ");
             var navKeysNameCondition = "o => " + navKeys.Select(key => "o." + key.Name + " == " + key.Name + suffix).Join(" && ");
     
+            this.Write("\n\n        ");
+ foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { 
             this.Write("\n        [EnableQueryRef(PageSize = ");
             this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
             this.Write(")]\n        [HttpGet(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma1));
+            this.Write(this.ToStringHelper.ToStringWithCulture(pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",")));
+            this.Write(")/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("/$ref\")]\n        public Task<IActionResult> Get");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("Ref");
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
+            this.Write(")\n            => Get");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
+            this.Write("Ref(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
+            this.Write(");\n        ");
+ } 
+            this.Write("\n\n        [EnableQueryRef(PageSize = ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
+            this.Write(")]\n        [HttpGet(\"/");
+            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
+            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("/$ref\")]\n        public async Task<IActionResult> Get");
@@ -395,28 +484,32 @@ namespace ");
             this.Write(");\n\n            if (entity == null)\n                return NotFound();\n\n         " +
                     "   return Ok(entity.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write(");\n        }\n\n        [EnableQueryRef(PageSize = ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(PageSize));
-            this.Write(")]\n        [HttpGet(\"/");
+            this.Write(");\n        }\n\n        ");
+ foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { 
+            this.Write("\n        [HttpPost(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma2));
+            this.Write(this.ToStringHelper.ToStringWithCulture(pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",")));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("/$ref\")]\n        public Task<IActionResult> Get");
+            this.Write("/$ref\")]\n        public Task<IActionResult> Post");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("Ref2(");
+            this.Write("Ref");
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
+            this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(") => Get");
+            this.Write(", [FromBody]Uri uri)\n            => Post");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("Ref(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(");\n\n        [HttpPost(\"/");
+            this.Write(", uri);\n        ");
+ } 
+            this.Write("\n\n        [HttpPost(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma1));
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("/$ref\")]\n        public async Task<IActionResult> Post");
@@ -463,26 +556,44 @@ namespace ");
                     " root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(".Add(entity);\n\n            await _db.SaveChangesAsync();\n\n            return Ok()" +
-                    ";\n        }\n\n        [HttpPost(\"/");
+                    ";\n        }\n\n        ");
+ foreach(var (pKeys, i) in GetPermutation(keys).Select((pKeys, i) => (pKeys, i))) { 
+            this.Write("\n        ");
+ foreach(var (nKeys, j) in GetPermutation(navKeys).Select((nKeys, j) => (nKeys, j))) { 
+            this.Write("\n        [HttpDelete(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma2));
+            this.Write(this.ToStringHelper.ToStringWithCulture(pKeys.Select(k => k.Name + "={" + k.Name + "0}").Join(",")));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("/$ref\")]\n        public Task<IActionResult> Post");
+            this.Write("(");
+            this.Write(this.ToStringHelper.ToStringWithCulture(nKeys.Select(k => k.Name + "={" + k.Name + "1}").Join(",")));
+            this.Write(")/$ref\")]\n        public Task<IActionResult> Delete");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("Ref2(");
+            this.Write("Ref");
+            this.Write(this.ToStringHelper.ToStringWithCulture(i));
+            this.Write("x");
+            this.Write(this.ToStringHelper.ToStringWithCulture(j));
+            this.Write("(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", [FromBody]Uri uri) => Post");
+            this.Write(", ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
+            this.Write(")\n            => Delete");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("Ref(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(", uri);\n        \n        [HttpDelete(\"/");
+            this.Write(", ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameComma));
+            this.Write(");\n        ");
+ } 
+            this.Write("\n        ");
+ } 
+            this.Write("\n\n        [HttpDelete(\"/");
             this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma1));
+            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma));
             this.Write(")/");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write("(");
@@ -530,28 +641,7 @@ namespace ");
                     "und();\n\n            root.");
             this.Write(this.ToStringHelper.ToStringWithCulture(navName));
             this.Write(".Remove(entity);\n\n            await _db.SaveChangesAsync();\n\n            return N" +
-                    "oContent();\n        }\n\n        [HttpDelete(\"/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(RoutePrefix));
-            this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameBraceComma2));
-            this.Write(")/");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameBraceComma2));
-            this.Write(")/$ref\")]\n        public Task<IActionResult> Delete");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("Ref2(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysTypeNameComma));
-            this.Write(", ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysTypeNameComma));
-            this.Write(") => Delete");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navName));
-            this.Write("Ref(");
-            this.Write(this.ToStringHelper.ToStringWithCulture(keysNameComma));
-            this.Write(", ");
-            this.Write(this.ToStringHelper.ToStringWithCulture(navKeysNameComma));
-            this.Write(");\n    ");
+                    "oContent();\n        }\n    ");
   } 
             this.Write("\n    }\n");
  } 
