@@ -340,7 +340,8 @@ namespace ");
             }
         ");
  } 
-            this.Write("\n            var original = await _db.");
+            this.Write("\n            if (delta == null) {\n                return BadRequest(ModelState);\n" +
+                    "            }\n\n            var original = await _db.");
             this.Write(this.ToStringHelper.ToStringWithCulture(entitySetName));
             this.Write(".FirstOrDefaultAsync(");
             this.Write(this.ToStringHelper.ToStringWithCulture(keysNameCondition));

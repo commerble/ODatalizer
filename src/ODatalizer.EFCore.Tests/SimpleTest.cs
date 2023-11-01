@@ -130,5 +130,16 @@ namespace ODatalizer.EFCore.Tests
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        [Fact(DisplayName = "PATCH ~/entitysets(key) 400"), TestPriority(1)]
+        public async Task PatchInvalidModel()
+        {
+            var response = await _client.PatchAsync("/sample/Products(1L)", Helpers.JSON(new
+            {
+                Error = "will be happen",
+            }));
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
     }
 }

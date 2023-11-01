@@ -247,6 +247,10 @@ namespace <#= Namespace #>
                     return Unauthorized();
             }
         <# } #>
+            if (delta == null) {
+                return BadRequest(ModelState);
+            }
+
             var original = await _db.<#= entitySetName #>.FirstOrDefaultAsync(<#= keysNameCondition #>);
 
             if (original == null)
