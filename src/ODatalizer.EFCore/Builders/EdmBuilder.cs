@@ -12,6 +12,8 @@ namespace ODatalizer.EFCore.Builders
     public class EdmBuilder
     {
         public static IEdmModel Build<TDbContext>(TDbContext db) where TDbContext : DbContext
+            => Build(db, null);
+        public static IEdmModel Build<TDbContext>(TDbContext db, Action<ODataConventionModelBuilder> onModelCreating) where TDbContext : DbContext
         {
             var builder = new ODataConventionModelBuilder();
 
@@ -43,6 +45,11 @@ namespace ODatalizer.EFCore.Builders
                 builder.AddEntitySet(dbSet.Name, type);
             }
 
+
+            if (onModelCreating != null)
+            {
+                onModelCreating(builder);
+            }
 
             // ODataConventionModelBuilder make ForeignKey be Nullable=True even if the column type of RDB is NOT NULL.
             // Save original column Nullable settings and restore it on model creating.

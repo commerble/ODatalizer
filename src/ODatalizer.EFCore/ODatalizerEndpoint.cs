@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using ODatalizer.EFCore.Builders;
 using System;
 
@@ -25,7 +26,14 @@ namespace ODatalizer.EFCore
         public int PageSize { get; set; } = DefaultPageSize;
         public int MaxExpansionDepth { get; set; } = DefaultMaxExpansionDepth;
         public bool Authorize { get; }
-        public ODatalizerEndpoint(DbContext db, string routeName = null, string routePrefix = null, string controller = null, string @namespace = null, bool authorize = false)
+        public ODatalizerEndpoint(
+            DbContext db, 
+            string routeName = null, 
+            string routePrefix = null, 
+            string controller = null, 
+            string @namespace = null, 
+            bool authorize = false,
+            Action<ODataConventionModelBuilder> onEdmCreating = null)
         {
             DbContext = db;
             Namespace = @namespace;
@@ -33,7 +41,7 @@ namespace ODatalizer.EFCore
             RouteName = routeName;
             RoutePrefix = routePrefix;
             Authorize = authorize;
-            EdmModel = EdmBuilder.Build(db);
+            EdmModel = EdmBuilder.Build(db, onEdmCreating);
         }
     }
 
