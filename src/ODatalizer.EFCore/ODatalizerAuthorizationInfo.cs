@@ -12,6 +12,11 @@ namespace ODatalizer.EFCore
             AccessedResources.Add(new ODatalizerAccessedResource { Name = name });
         }
 
+        public void Add(string name, string operation)
+        {
+            AccessedResources.Add(new ODatalizerAccessedResource { Name = name, Operation = operation });
+        }
+
         public void BindProp(string propName)
         {
             AccessedResources.LastOrDefault()?.Properties.Add(propName);
