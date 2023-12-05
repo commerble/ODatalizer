@@ -83,7 +83,7 @@ namespace ODatalizer.EFCore
             {
                 Request.AddAuthorizationInfoFromSelectExpandClause(_visitor.AuthorizationInfo);
 
-                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Read");
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, ODatalizerPolicy.Name);
 
                 if (!authorizationResult.Succeeded)
                 {
@@ -129,7 +129,8 @@ namespace ODatalizer.EFCore
 
             if (_authorize)
             {
-                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+                _visitor.AuthorizationInfo.SetLastOperation("Write");
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, ODatalizerPolicy.Name);
 
                 if (!authorizationResult.Succeeded)
                 {
@@ -191,7 +192,8 @@ namespace ODatalizer.EFCore
 
             if (_authorize)
             {
-                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+                _visitor.AuthorizationInfo.SetLastOperation("Write");
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, ODatalizerPolicy.Name);
 
                 if (!authorizationResult.Succeeded)
                 {
@@ -264,8 +266,9 @@ namespace ODatalizer.EFCore
                 var get = type.GetMethod("GetChangedPropertyNames", BindingFlags.Public | BindingFlags.Instance);
                 var names = (IEnumerable<string>)get.Invoke(result.Model, new object[0]);
                 _visitor.AuthorizationInfo.BindProps(names);
-
-                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+                _visitor.AuthorizationInfo.SetLastOperation("Write");
+                
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, ODatalizerPolicy.Name);
 
                 if (!authorizationResult.Succeeded)
                 {
@@ -317,7 +320,8 @@ namespace ODatalizer.EFCore
 
             if (_authorize)
             {
-                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, "Write");
+                _visitor.AuthorizationInfo.SetLastOperation("Write");
+                var authorizationResult = await _authorization.AuthorizeAsync(User, _visitor.AuthorizationInfo, ODatalizerPolicy.Name);
 
                 if (!authorizationResult.Succeeded)
                 {

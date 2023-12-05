@@ -28,11 +28,9 @@ namespace Sample.EFCore
 
         bool CheckScope(IDictionary<string, List<string>> scopes, OperationAuthorizationRequirement requirement, IEnumerable<ODatalizerAccessedResource> resources)
         {
-            var lastIndex = resources.Count() - 1;
-            foreach (var (resource, isLast) in resources.Select((r, i) => (r, i == lastIndex)))
+            foreach (var resource in resources)
             {
-                var op = isLast ? requirement.Name : "read";
-                var name = $"{op}:{resource.Name}".ToLower();
+                var name = $"{resource.Operation}:{resource.Name}".ToLower();
                 if (!scopes.ContainsKey(name))
                 {
                     return false;

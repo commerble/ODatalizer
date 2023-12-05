@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
-using Newtonsoft.Json.Linq;
 using ODatalizer.EFCore.Converters;
 using System;
 using System.Collections;
@@ -77,6 +74,7 @@ namespace ODatalizer.EFCore
                 });
                 Index++;
             }
+            
         }
 
         public Task VisitAsync(TypeSegment segment)
@@ -260,31 +258,5 @@ namespace ODatalizer.EFCore
 
             throw new InvalidCastException();
         }
-    }
-
-    public class ODatalizerAuthorizationInfo
-    {
-        public List<ODatalizerAccessedResource> AccessedResources = new List<ODatalizerAccessedResource>();
-
-        public void Add(string name)
-        {
-            AccessedResources.Add(new ODatalizerAccessedResource { Name = name });
-        }
-
-        public void BindProp(string propName)
-        {
-            AccessedResources.LastOrDefault()?.Properties.Add(propName);
-        }
-
-        public void BindProps(IEnumerable<string> propNames)
-        {
-            AccessedResources.LastOrDefault()?.Properties.AddRange(propNames);
-        }
-    }
-
-    public class ODatalizerAccessedResource
-    {
-        public string Name { get; set; }
-        public List<string> Properties { get; set; } = new List<string>();
     }
 }

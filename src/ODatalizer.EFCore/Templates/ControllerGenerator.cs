@@ -117,7 +117,7 @@ namespace ");
 
             Request.AddAuthorizationInfoFromSelectExpandClause(resource);
 
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Read"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -143,11 +143,12 @@ namespace ");
                     "         AccessedResources = {\n                    new ODatalizerAccessedResourc" +
                     "e\n                    {\n                        Name = \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(@"""
+            this.Write(@""",
+                        Operation = ""Write"",
                     }
                 }
             };
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -186,7 +187,7 @@ namespace ");
             
             Request.AddAuthorizationInfoFromSelectExpandClause(resource);
 
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Read"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -253,11 +254,12 @@ namespace ");
                     "         AccessedResources = {\n                    new ODatalizerAccessedResourc" +
                     "e\n                    {\n                        Name = \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(@"""
+            this.Write(@""",
+                        Operation = ""Write"",
                     }
                 }
             };
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -324,12 +326,13 @@ namespace ");
                     "         AccessedResources = {\n                    new ODatalizerAccessedResourc" +
                     "e\n                    {\n                        Name = \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(@"""
+            this.Write(@""",
+                        Operation = ""Write"",
                     }
                 }
             };
             resource.BindProps(delta.GetChangedPropertyNames());
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -375,11 +378,12 @@ namespace ");
                     "         AccessedResources = {\n                    new ODatalizerAccessedResourc" +
                     "e\n                    {\n                        Name = \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(entityName));
-            this.Write(@"""
+            this.Write(@""",
+                        Operation = ""Write""
                     }
                 }
             };
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -467,7 +471,7 @@ namespace ");
 
             Request.AddAuthorizationInfoFromSelectExpandClause(resource);
 
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Read"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -526,11 +530,12 @@ namespace ");
             this.Write("\"\n                    },\n                    new ODatalizerAccessedResource\n     " +
                     "               {\n                        Name = \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write(@"""
+            this.Write(@""",
+                        Operation = ""Write"",
                     }
                 }
             };
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {
@@ -614,11 +619,12 @@ namespace ");
             this.Write("\"\n                    },\n                    new ODatalizerAccessedResource\n     " +
                     "               {\n                        Name = \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(navEntityName));
-            this.Write(@"""
+            this.Write(@""",
+                        Operation = ""Write"",
                     }
                 }
             };
-            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ""Write"");
+            var authorizationResult = await _authorization.AuthorizeAsync(User, resource, ODatalizerPolicy.Name);
 
             if (!authorizationResult.Succeeded)
             {

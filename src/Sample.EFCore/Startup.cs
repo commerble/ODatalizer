@@ -68,11 +68,8 @@ namespace Sample.EFCore
             {
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy("Read", policy =>
-                        policy.Requirements.Add(new OperationAuthorizationRequirement { Name = "Read" }));
-
-                    options.AddPolicy("Write", policy =>
-                        policy.Requirements.Add(new OperationAuthorizationRequirement { Name = "Write" }));
+                    options.AddPolicy(ODatalizerPolicy.Name, policy =>
+                        policy.Requirements.Add(new OperationAuthorizationRequirement { Name = ODatalizerPolicy.Name }));
                 });
                 services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                         .AddCookie(opt => {
