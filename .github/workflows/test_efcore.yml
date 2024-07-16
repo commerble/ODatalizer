@@ -32,7 +32,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
     - name: Clean
       working-directory: ./src/
       run: dotnet clean ODatalizer.EFCore.sln --configuration Release && dotnet nuget locals all --clear
@@ -46,7 +46,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
     - name: Run all tests
       working-directory: ./src/
       run: dotnet test ODatalizer.EFCore.sln
