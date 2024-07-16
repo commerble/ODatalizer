@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sample.EFCore.Entities
 {
     public class Product
     {
         public long Id { get; set; }
+        [Required(AllowEmptyStrings = true)]
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
         public string Name { get; set; }
         public decimal UnitPrice { get; set; }
         public int SalesPatternId { get; set; }
