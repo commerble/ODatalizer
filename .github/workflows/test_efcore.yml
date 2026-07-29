@@ -22,17 +22,19 @@ on:
       - 'src/ODatalizer.EFCore/**'
       - 'src/ODatalizer.EFCore.Tests/**'
       - 'src/ODatalizer.EFCore.sln'
-      - '.github/workflows/test.yml'
+
+permissions:
+  contents: read
 
 jobs:
   windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Clean
       working-directory: ./src/
       run: dotnet clean ODatalizer.EFCore.sln --configuration Release && dotnet nuget locals all --clear
@@ -42,11 +44,11 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Run all tests
       working-directory: ./src/
       run: dotnet test ODatalizer.EFCore.sln
