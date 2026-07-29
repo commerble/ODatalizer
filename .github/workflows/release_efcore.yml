@@ -7,27 +7,34 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
+    permissions:
+      id-token: write
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
-      with:
-        dotnet-version: 10.0.x
-    - name: Clean
-      working-directory: ./src/
-      run: dotnet clean ODatalizer.EFCore.sln --configuration Release && dotnet nuget locals all --clear
-    - name: Run all tests
-      working-directory: ./src/
-      run: dotnet test ODatalizer.EFCore.sln
-    - name: Replace version
-      working-directory: ./src/ODatalizer.EFCore
-      shell: bash
-      run: |
-        sed -i -e "s|<Version>1.0.0</Version>|<Version>${{ github.event.release.tag_name }}</Version>|g" ./ODatalizer.EFCore.csproj
-        cat ./ODatalizer.EFCore.csproj
-    - name: Build release
-      working-directory: ./src/ODatalizer.EFCore
-      run: dotnet pack -c Release
-    - name: Publish to NuGet.org
-      working-directory: ./src/ODatalizer.EFCore/bin/Release
-      run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_TOKEN }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          dotnet-version: 10.0.x
+      - name: Clean
+        working-directory: ./src/
+        run: dotnet clean ODatalizer.EFCore.sln --configuration Release && dotnet nuget locals all --clear
+      - name: Run all tests
+        working-directory: ./src/
+        run: dotnet test ODatalizer.EFCore.sln
+      - name: Replace version
+        working-directory: ./src/ODatalizer.EFCore
+        shell: bash
+        run: |
+          sed -i -e "s|<Version>1.0.0</Version>|<Version>${{ github.event.release.tag_name }}</Version>|g" ./ODatalizer.EFCore.csproj
+          cat ./ODatalizer.EFCore.csproj
+      - name: Build release
+        working-directory: ./src/ODatalizer.EFCore
+        run: dotnet pack -c Release
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Publish to NuGet.org
+        working-directory: ./src/ODatalizer.EFCore/bin/Release
+        run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{steps.login.outputs.NUGET_API_KEY}}
