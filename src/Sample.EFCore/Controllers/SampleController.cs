@@ -24,7 +24,7 @@ namespace Sample.EFCore.Controllers
         /// Override any settings; PageSize, MaxExpansionDepth, ...
         /// </summary>
         /// <returns></returns>
-        [EnableQuery(PageSize = 50, MaxExpansionDepth = 3)]
+        [EnableQuery(PageSize = 50, MaxExpansionDepth = 3, MaxAnyAllExpressionDepth = 2)]
         public override Task<IActionResult> Get()
         {
             return base.Get();

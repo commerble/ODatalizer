@@ -15,7 +15,8 @@ namespace ODatalizer.EFCore.Templates
         public string RouteName { get; }
         public int PageSize { get; }
         public int MaxExpansionDepth { get; set; }
-        public bool Authorize { get; }
+        public int MaxAnyAllExpressionDepth { get; set; }
+		public bool Authorize { get; }
 
         public string RouteNameValue => RouteName != null ? '"' + RouteName + '"' : "null";
 
@@ -46,7 +47,8 @@ namespace ODatalizer.EFCore.Templates
             RouteName = ep.RouteName;
             PageSize = ep.PageSize;
             MaxExpansionDepth = ep.MaxExpansionDepth;
-            Authorize = ep.Authorize;
+            MaxAnyAllExpressionDepth = ep.MaxAnyAllExpressionDepth;
+			Authorize = ep.Authorize;
             _namespace = ep.Namespace;
             _routePrefix = ep.RoutePrefix;
         }

@@ -58,7 +58,7 @@ namespace <#= Namespace #>
             _authorization = authorization;
         }
 
-        [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>)]
+        [EnableQuery(PageSize = <#= PageSize #>, MaxExpansionDepth = <#= MaxExpansionDepth #>, MaxAnyAllExpressionDepth = <#= MaxAnyAllExpressionDepth #>)]
         [HttpGet("/<#= RoutePrefix #><#= entitySetName #>")]
         <# if(Authorize) { #>
         public async Task<IActionResult> Get()

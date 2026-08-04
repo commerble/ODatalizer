@@ -16,8 +16,9 @@ namespace ODatalizer.EFCore
         /// </summary>
         public const int DefaultPageSize = 100;
         public const int DefaultMaxExpansionDepth = 5;
+        public const int DefaultMaxAnyAllExpressionDepth = 2;
 
-        public string Namespace { get; }
+		public string Namespace { get; }
         public string RouteName { get; }
         public string RoutePrefix { get; }
         public DbContext DbContext { get; }
@@ -25,7 +26,8 @@ namespace ODatalizer.EFCore
         public string ODatalizerController { get; set; }
         public int PageSize { get; set; } = DefaultPageSize;
         public int MaxExpansionDepth { get; set; } = DefaultMaxExpansionDepth;
-        public bool Authorize { get; }
+        public int MaxAnyAllExpressionDepth { get; set; } = DefaultMaxAnyAllExpressionDepth;
+		public bool Authorize { get; }
         public ODatalizerEndpoint(
             DbContext db, 
             string routeName = null, 
